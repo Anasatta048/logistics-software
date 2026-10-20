@@ -1,0 +1,23 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 5
+
+    paths:
+        - app
+        - routes
+        - database
+
+    tmpDir: storage/framework/cache/phpstan
+
+    # Read the literal array returned by Model::casts() instead of its declared
+    # return type. Without this, `@return array<string, string>` on casts()
+    # makes Larastan ignore the casts and every enum-cast attribute (LoadStatus,
+    # DriverStatus, ...) is analysed as a plain string.
+    parseModelCastsMethod: true
+
+    # Models resolve casts/relations dynamically. Relation *properties* are
+    # declared with @property-read on the models themselves, which is what
+    # Larastan reads instead of resolving the relation at runtime.
+    checkModelProperties: false

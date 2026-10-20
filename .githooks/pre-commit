@@ -1,0 +1,16 @@
+#!/bin/sh
+# Block commits that violate the project's code style or static analysis rules.
+# Invoked via `git config core.hooksPath .githooks`.
+#
+# `php vendor/bin/<tool>` is used instead of `vendor/bin/<tool>` so the hook
+# behaves the same on Windows (git-bash), macOS and Linux.
+
+set -e
+
+echo "==> Pint (PSR-12)"
+php vendor/bin/pint --test
+
+# ponytail: phpstan blocks the commit too. Drop it here if analysis time ever
+# gets in the way; `composer analyse` still runs it on demand.
+echo "==> Larastan (level 5)"
+php vendor/bin/phpstan analyse --no-progress
