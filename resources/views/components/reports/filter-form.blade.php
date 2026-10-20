@@ -142,3 +142,37 @@
         </div>
     @endif
 </form>
+
+@auth
+    @php($mine = \App\Models\SavedReport::query()->where('user_id', auth()->id())->where('report', $action)->orderBy('name')->get())
+    <div x-data="{ open: false, schedule: 'none' }" class="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3 text-xs dark:border-white/10">
+        @if ($mine->isNotEmpty())
+            <label class="font-semibold text-text-muted">{{ __('My saved views') }}</label>
+            <select class="border-border py-1 text-xs" onchange="if (this.value) window.location = this.value">
+                <option value="">{{ __('Open…') }}</option>
+                @foreach ($mine as $view)
+                    <option value="{{ route($action, $view->filters ?? []) }}">{{ $view->name }}@if ($view->schedule !== 'none') · {{ $view->scheduleLabel() }}@endif</option>
+                @endforeach
+            </select>
+        @endif
+        <button type="button" class="btn-ghost btn-sm" @click="open = ! open"><x-icon name="save" :size="13" /> {{ __('Save this view') }}</button>
+        <a href="{{ route('saved-reports.index') }}" class="font-semibold text-brand-primary">{{ __('Manage saved reports') }}</a>
+
+        <form x-show="open" x-cloak method="POST" action="{{ route('saved-reports.store') }}" class="mt-2 grid w-full gap-2 border border-border bg-bg p-3 sm:grid-cols-5 dark:border-white/10 dark:bg-white/5">
+            @csrf
+            <input type="hidden" name="report" value="{{ $action }}">
+            @foreach (request()->except(['export', 'page', 'section', '_token']) as $k => $v)
+                @if (is_scalar($v) && $v !== '')<input type="hidden" name="filters[{{ $k }}]" value="{{ $v }}">@endif
+            @endforeach
+            <input name="name" required maxlength="80" placeholder="{{ __('Name, e.g. Monthly P&L') }}" class="border-border text-sm sm:col-span-2">
+            <select name="schedule" x-model="schedule" class="border-border text-sm"><option value="none">{{ __('Just save') }}</option><option value="weekly">{{ __('Email weekly') }}</option><option value="monthly">{{ __('Email monthly') }}</option></select>
+            <div x-show="schedule !== 'none'" x-cloak class="flex gap-2">
+                <select name="schedule_day" x-show="schedule === 'weekly'" class="border-border text-sm">@foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $i => $day)<option value="{{ $i + 1 }}">{{ $day }}</option>@endforeach</select>
+                <input type="number" name="schedule_day" min="1" max="28" value="1" x-show="schedule === 'monthly'" class="w-20 border-border text-sm" title="{{ __('Day of month') }}">
+                <select name="format" class="border-border text-sm"><option value="csv">CSV</option><option value="pdf">PDF</option></select>
+            </div>
+            <input name="recipients" x-show="schedule !== 'none'" x-cloak value="{{ auth()->user()->email }}" placeholder="{{ __('Emails') }}" class="border-border text-sm sm:col-span-4">
+            <button class="btn-primary btn-sm sm:col-span-1"><x-icon name="check" :size="13" /> {{ __('Save') }}</button>
+        </form>
+    </div>
+@endauth

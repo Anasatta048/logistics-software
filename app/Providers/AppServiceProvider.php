@@ -75,6 +75,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-saas', fn (User $user): bool => (bool) $user->is_super_admin);
 
         // App-wide settings (team timezones) belong to admins alone.
+        Gate::define('manage-data', fn (User $user): bool => $user->can('data.import') || $user->can('data.export'));
         Gate::define('manage-settings', fn (User $user): bool => $user->can('settings.manage'));
 
         // Plan caps (users / drivers / loads per month) apply on every insert.

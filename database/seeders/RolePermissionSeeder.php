@@ -38,6 +38,7 @@ class RolePermissionSeeder extends Seeder
         'journal-vouchers' => ['view', 'create', 'edit', 'approve', 'void'],
         'reports' => ['view'],
         'settings' => ['manage'],
+        'data' => ['import', 'export'],
         'activity-logs' => ['view'],
     ];
 

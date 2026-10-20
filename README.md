@@ -49,6 +49,36 @@ schedule `php artisan schedule:run` every minute (nightly `tenants:sweep` locks 
 * Files are stored under `tenants/{id}/...`; settings are one JSON row per (tenant, group).
 * Plan limits (users, drivers, loads per month) are enforced on model `creating`.
 
+
+## What each company can customise
+
+Under **Business settings** (needs the `settings.manage` right); everything is stored per company.
+
+| Area | Options |
+|---|---|
+| Branding | logo, accent and sidebar colours (whole app, charts, invoices, report PDFs), invoice layout |
+| Numbering | load prefix / digits / first number, invoice prefix, voucher prefix / digits (gap-free per-company counters) |
+| Regional | date format, week start, financial-year start, local and client currency symbols |
+| Load rules | which optional details become compulsory |
+| Dashboard | which sections show, revenue chart range |
+| Notifications | which events also email, subject prefix and sign-off, alert overseers too |
+| Custom fields | extra text / number / date / dropdown / yes-no fields on loads, drivers and carriers (can show as list columns) |
+| Tax rules | named taxes picked on a USD to PKR conversion |
+| Commission | flat per dispatcher, or marginal slabs that rise with monthly margin |
+| Expense categories, equipment types, timezones, roles | managed from the same hub |
+
+New settings are one entry in `config/tenant-settings.php`; no controller or view needed.
+
+## Import, export, saved reports
+
+* **Import** (`Import & Export`, needs `data.import`): CSV or Excel for carriers, brokers, drivers and past loads.
+  Download a template, upload, map columns, review every row, then import; rejected rows come back as a CSV.
+  Imports are history only: they never create commissions, invoices or ledger entries.
+* **Export** (needs `data.export`): a queued full backup, a ZIP of one CSV per area (no passwords).
+  Backups are deleted after seven days.
+* **Saved reports**: save any report with its filters; optionally email it weekly or monthly as CSV or PDF.
+  The scheduler runs `reports:send-scheduled` hourly; each report is produced as the person who saved it.
+
 ## Scaling notes
 
 * Use Redis for cache, session and queue in production (`CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION`).

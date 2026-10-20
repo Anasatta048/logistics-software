@@ -102,7 +102,10 @@ return [
         [
             'label' => 'Reports',
             'items' => [
-                ['label' => 'Reports', 'route' => 'reports.index', 'icon' => 'chart-bar', 'gate' => 'reports.viewAny'],
+                ['label' => 'Reports', 'route' => 'reports.index', 'icon' => 'chart-bar', 'gate' => 'reports.viewAny', 'children' => [
+                    ['label' => 'All reports', 'route' => 'reports.index'],
+                    ['label' => 'Saved reports', 'route' => 'saved-reports.index'],
+                ]],
             ],
         ],
         [
@@ -117,6 +120,7 @@ return [
                     ['label' => 'Add role', 'route' => 'roles.create', 'gate' => ['create', App\Models\Role::class]],
                 ]],
                 ['label' => 'Business Settings', 'route' => 'settings.business.edit', 'icon' => 'building', 'gate' => 'manage-settings'],
+                ['label' => 'Import & Export', 'route' => 'data.index', 'icon' => 'upload', 'gate' => 'manage-data'],
                 ['label' => 'My Settings', 'route' => 'profile.edit', 'icon' => 'settings', 'gate' => null],
                 ['label' => 'Activity Log', 'route' => 'activity-logs.index', 'icon' => 'file-text', 'gate' => 'view-activity-logs'],
             ],

@@ -23,6 +23,7 @@ return [
         'reports' => ['Reports', 'chart-bar', 'Business reports and exports'],
         'users' => ['Users', 'user', 'People who can sign in'],
         'settings' => ['Business settings', 'settings', 'Company profile, finance defaults, categories'],
+        'data' => ['Import & export', 'upload', 'Bring records in from Excel and take backups out'],
         'activity-logs' => ['Activity log', 'file-text', 'Who did what, and when'],
         'roles' => ['Roles & rights', 'key', 'Who can do what'],
     ],
@@ -41,6 +42,8 @@ return [
         'view-all' => ['See all records', 'Without this a person only sees their own loads and commissions'],
         'view-company' => ['See company earnings', 'Can see the fee the company earns on each load'],
         'transfer' => ['Move money between accounts', 'Can transfer funds from one account to another'],
+        'import' => ['Import', 'Can upload spreadsheets to add records'],
+        'export' => ['Export', 'Can download full backups'],
         'manage' => ['Manage', 'Can change these settings'],
     ],
 ];

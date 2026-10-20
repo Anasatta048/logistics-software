@@ -18,6 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Pins the request to the signed-in user's tenant (see ResolveTenant).
         $middleware->web(append: [\App\Http\Middleware\ResolveTenant::class]);
+
+        // The tenant must be known BEFORE route-model binding runs, or `/drivers/{id}` would
+        // look the record up across all tenants and only be refused afterwards.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            prepend: \App\Http\Middleware\ResolveTenant::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
