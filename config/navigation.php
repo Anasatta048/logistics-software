@@ -36,6 +36,17 @@ return [
             ],
         ],
         [
+            'label' => 'Platform',
+            'items' => [
+                ['label' => 'SaaS Overview', 'route' => 'super-admin.dashboard', 'icon' => 'layers', 'gate' => 'manage-saas'],
+                ['label' => 'Plans', 'route' => 'super-admin.plans.index', 'icon' => 'tag', 'gate' => 'manage-saas', 'children' => [
+                    ['label' => 'All plans', 'route' => 'super-admin.plans.index'],
+                    ['label' => 'Add plan', 'route' => 'super-admin.plans.create'],
+                ]],
+                ['label' => 'Access Requests', 'route' => 'super-admin.requests.index', 'icon' => 'inbox', 'gate' => 'manage-saas'],
+            ],
+        ],
+        [
             'label' => 'Operations',
             'items' => [
                 ['label' => 'Loads', 'route' => 'loads.index', 'icon' => 'truck', 'gate' => ['viewAny', Load::class], 'children' => [

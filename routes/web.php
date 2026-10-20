@@ -11,7 +11,9 @@
 |
 */
 
+require __DIR__.'/modules/landing.php';
 require __DIR__.'/modules/auth.php';
+require __DIR__.'/modules/super-admin.php';
 require __DIR__.'/modules/users.php';
 require __DIR__.'/modules/roles.php';
 require __DIR__.'/modules/companies.php';

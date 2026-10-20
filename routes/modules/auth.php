@@ -9,11 +9,6 @@ use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use Illuminate\Support\Facades\Route;
 
-// There is no public homepage: the app opens on the login page (and the guest
-// middleware sends an already-signed-in user on to their dashboard).
-// Route::redirect (not a closure) keeps `php artisan route:cache` working.
-Route::redirect('/', '/login')->name('home');
-
 // Phase 9: role-aware dashboard (active loads, this month's margin, pending
 // settlements). Dispatchers/accountants land elsewhere on login
 // (User::homeRouteName()) but this route stays reachable for everyone.

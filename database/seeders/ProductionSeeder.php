@@ -16,6 +16,8 @@ class ProductionSeeder extends Seeder
     {
         $this->call(RolePermissionSeeder::class);
         $this->call(InvoiceProfileSeeder::class);
+        $this->call(PlanSeeder::class);
+        $this->call(SuperAdminSeeder::class);
 
         User::firstOrCreate(
             ['email' => 'admin@dreamelectlogistics.com'],

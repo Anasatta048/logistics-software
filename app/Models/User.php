@@ -160,6 +160,7 @@ class User extends Authenticatable
     public function homeRouteName(): string
     {
         $byRole = match (true) {
+            $this->hasRole('super-admin') => 'super-admin.dashboard',
             $this->hasRole('dispatcher') => 'loads.index',
             $this->hasRole('accountant') => 'accounts.index',
             default => 'dashboard',

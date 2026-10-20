@@ -69,6 +69,11 @@ class AppServiceProvider extends ServiceProvider
         // App\Models\Policies — so this one has to be wired by hand.
         Gate::policy(Role::class, RolePolicy::class);
 
+        // The platform owner (SaaS super admin) passes every check and alone
+        // reaches the plans / access-requests area.
+        Gate::before(fn (User $user): ?bool => $user->hasRole('super-admin') ? true : null);
+        Gate::define('manage-saas', fn (User $user): bool => $user->hasRole('super-admin'));
+
         // App-wide settings (team timezones) belong to admins alone.
         Gate::define('manage-settings', fn (User $user): bool => $user->hasRole('admin'));
 

@@ -28,7 +28,9 @@ final class Navigation
                     continue;
                 }
 
-                $prefix = explode('.', $item['route'])[0];
+                // `super-admin.*` holds several modules, so there the prefix is two segments.
+                $parts = explode('.', $item['route']);
+                $prefix = $parts[0] === 'super-admin' ? $parts[0].'.'.$parts[1] : $parts[0];
                 $children = self::children($item['children'] ?? [], $prefix);
 
                 $items[] = [

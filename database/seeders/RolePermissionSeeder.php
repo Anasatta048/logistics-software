@@ -42,6 +42,7 @@ class RolePermissionSeeder extends Seeder
      * new permission row, not 45 new lines per role.
      */
     private const MATRIX = [
+        'super-admin' => ['*'],
         'admin' => ['*'],
 
         // Own loads only (scoped in the Service/Policy, not the permission set).
