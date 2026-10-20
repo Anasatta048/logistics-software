@@ -20,10 +20,6 @@ final class SendLoadStatusChangedNotification
             return;
         }
 
-        $dispatcher = $event->load->dispatcher;
-
-        if ($dispatcher && ($dispatcher->notification_preferences['load_status_changed'] ?? true)) {
-            $dispatcher->notify(new LoadStatusChangedNotification($event->load, $event->from, $event->to));
-        }
+        LoadNotifier::send($event->load, 'load_status_changed', new LoadStatusChangedNotification($event->load, $event->from, $event->to));
     }
 }

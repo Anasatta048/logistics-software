@@ -8,6 +8,7 @@ use App\Enums\DriverStatus;
 use App\Models\Broker;
 use App\Models\Driver;
 use App\Models\User;
+use App\Support\Settings\TenantSettings;
 use App\Support\Timezones;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -37,7 +38,7 @@ class StoreLoadRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             // Either an existing broker (picked by MC number) or the details of a
             // new one - the form sends one or the other, never both.
             // Optional: left blank, a DEL-000123 style number is generated.
@@ -111,6 +112,47 @@ class StoreLoadRequest extends FormRequest
             'attachments.*' => ['file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'attachment_types.*' => ['required_with:attachments', Rule::enum(AttachmentType::class)],
         ];
+
+        return $this->applyCompanyRules($rules + \App\Services\Support\CustomFields::rules('load'));
+    }
+
+    /**
+     * The "Load rules" the company switched on in Business settings make an
+     * optional detail compulsory. A rule only ever adds `required`.
+     *
+     * @param  array<string, mixed>  $rules
+     * @return array<string, mixed>
+     */
+    private function applyCompanyRules(array $rules): array
+    {
+        $must = function (string $field) use (&$rules): void {
+            $rules[$field] = ['required', ...array_values(array_filter($rules[$field], fn ($r) => $r !== 'nullable'))];
+        };
+
+        if (TenantSettings::on('loads.require_broker_contact')) {
+            $must('broker_contact_person');
+        }
+
+        if (TenantSettings::on('loads.require_dimensions')) {
+            foreach (['length_ft', 'width_ft', 'height_ft'] as $field) {
+                $must($field);
+            }
+        }
+
+        if (TenantSettings::on('loads.require_notes')) {
+            $must('notes');
+        }
+
+        if (TenantSettings::on('loads.require_driver') && ! filled($this->input('new_driver.name'))) {
+            $rules['driver_id'] = ['required', ...array_values(array_filter($rules['driver_id'], fn ($r) => $r !== 'nullable'))];
+        }
+
+        // Weight is on by default; a company can relax it.
+        if (! TenantSettings::on('loads.require_weight')) {
+            $rules['weight_lbs'] = ['nullable', ...array_values(array_filter($rules['weight_lbs'], fn ($r) => $r !== 'required'))];
+        }
+
+        return $rules;
     }
 
     /**

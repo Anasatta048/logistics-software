@@ -10,6 +10,7 @@ use App\Models\Load;
 use App\Models\User;
 use App\Services\Company\CompanyPaymentService;
 use App\Services\Report\ReportService;
+use App\Support\Settings\TenantSettings;
 use Illuminate\Support\Carbon;
 
 /**
@@ -122,7 +123,8 @@ final class DashboardService
      */
     private function trend(User $viewer): array
     {
-        $from = Carbon::now()->subDays(13)->startOfDay();
+        $days = max(7, (int) TenantSettings::get('dashboard.chart_days', 14));
+        $from = Carbon::now()->subDays($days - 1)->startOfDay();
         $to = Carbon::now()->endOfDay();
 
         $rows = $this->loadQuery($viewer)

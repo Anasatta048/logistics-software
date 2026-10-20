@@ -357,4 +357,6 @@
             </div>
         </div>
     </section>
+
+    <x-custom-fields entity="load" :model="$load" :step="7" />
 </div>

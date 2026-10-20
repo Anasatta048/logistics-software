@@ -193,7 +193,7 @@ final class BusinessDashboardService
 
         if ($finance['unconverted_usd'] > 0 && $viewer->can('company-payments.view')) {
             $alerts[] = ['tone' => 'warning', 'url' => route('company-payments.index'),
-                'text' => '$'.number_format($finance['unconverted_usd'], 2).' received in USD and not yet converted to PKR'];
+                'text' => cur_foreign().number_format($finance['unconverted_usd'], 2).' received in USD and not yet converted to PKR'];
         }
 
         foreach ($finance['cash']['low'] ?? [] as $low) {
@@ -203,7 +203,7 @@ final class BusinessDashboardService
 
         if ($finance['commission_payable_usd'] > 0 && $viewer->can('commissions.pay')) {
             $alerts[] = ['tone' => 'info', 'url' => route('commissions.index'),
-                'text' => '$'.number_format($finance['commission_payable_usd'], 2).' commission owed to dispatchers'];
+                'text' => cur_foreign().number_format($finance['commission_payable_usd'], 2).' commission owed to dispatchers'];
         }
 
         return $alerts;

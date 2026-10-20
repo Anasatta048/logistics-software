@@ -27,11 +27,11 @@
                         <tbody class="divide-y divide-border/60 dark:divide-white/5">
                             @foreach ($transfers as $t)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5 {{ $t->isReversed() ? 'opacity-50' : '' }}">
-                                    <td class="whitespace-nowrap px-4 py-3">{{ $t->transfer_date->format('M j, Y') }}</td>
+                                    <td class="whitespace-nowrap px-4 py-3">{{ $t->transfer_date->format(df()) }}</td>
                                     <td class="px-4 py-3 font-medium text-text-primary dark:text-white">{{ $t->from->name }}</td>
                                     <td class="px-4 py-3 font-medium text-text-primary dark:text-white">{{ $t->to->name }}</td>
-                                    <td class="px-4 py-3 text-right {{ $t->isReversed() ? 'line-through' : '' }}">Rs {{ number_format((float) $t->amount, 2) }}</td>
-                                    <td class="px-4 py-3 text-right text-text-muted">{{ (float) $t->fee > 0 ? 'Rs '.number_format((float) $t->fee, 2) : '—' }}</td>
+                                    <td class="px-4 py-3 text-right {{ $t->isReversed() ? 'line-through' : '' }}">{{ cur_local() }} {{ number_format((float) $t->amount, 2) }}</td>
+                                    <td class="px-4 py-3 text-right text-text-muted">{{ (float) $t->fee > 0 ? cur_local().' '.number_format((float) $t->fee, 2) : '—' }}</td>
                                     <td class="px-4 py-3 text-text-muted">{{ $t->reference ?: '—' }}@if ($t->narration)<span class="block max-w-xs truncate text-xs">{{ $t->narration }}</span>@endif</td>
                                     <td class="px-4 py-3 text-text-muted">{{ $t->author?->name ?? '—' }}</td>
                                     <td class="px-4 py-3 text-right">

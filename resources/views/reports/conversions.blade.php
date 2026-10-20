@@ -43,7 +43,7 @@
                             @foreach ($rows as $conversion)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
                                     <td class="px-4 py-3 whitespace-nowrap">
-                                        <a href="{{ route('company-payments.show', $conversion) }}" class="hover:underline">{{ $conversion->conversion_date->format('M j, Y') }}</a>
+                                        <a href="{{ route('company-payments.show', $conversion) }}" class="hover:underline">{{ $conversion->conversion_date->format(df()) }}</a>
                                     </td>
                                     <td class="px-4 py-3">{{ $conversion->company?->name ?? '—' }}</td>
                                     <td class="px-4 py-3 text-right">${{ number_format((float) $conversion->converted_usd, 2) }}</td>

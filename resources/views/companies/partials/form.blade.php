@@ -41,4 +41,6 @@
     </x-field>
 </x-form-section>
 
+<x-custom-fields entity="company" :model="$company" :step="4" />
+
 <x-form-actions :cancel="route('companies.index')" :submit="__('Save company')" />

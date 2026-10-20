@@ -40,7 +40,7 @@ final class InvoiceController extends Controller
         return view('invoices.create', [
             'today' => $today,
             'dueDate' => now(Timezones::us())->addDays((int) config('invoice.due_days'))->toDateString(),
-            'weekStart' => now(Timezones::us())->startOfWeek()->toDateString(),
+            'weekStart' => now(Timezones::us())->startOfWeek(week_start_day())->toDateString(),
         ]);
     }
 
@@ -81,7 +81,7 @@ final class InvoiceController extends Controller
 
         return redirect()
             ->route('invoices.show', $invoice)
-            ->with('success', "Invoice #{$invoice->invoice_number} created.");
+            ->with('success', "Invoice #{$invoice->label()} created.");
     }
 
     public function show(Invoice $invoice): View
@@ -139,6 +139,6 @@ final class InvoiceController extends Controller
 
         return redirect()
             ->route('invoices.index')
-            ->with('success', "Invoice #{$invoice->invoice_number} deleted. Its loads can be invoiced again.");
+            ->with('success', "Invoice #{$invoice->label()} deleted. Its loads can be invoiced again.");
     }
 }

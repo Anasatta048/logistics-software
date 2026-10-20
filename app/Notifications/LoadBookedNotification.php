@@ -3,15 +3,19 @@
 namespace App\Notifications;
 
 use App\Models\Load;
+use App\Notifications\Concerns\SendsCompanyMail;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-final class LoadBookedNotification extends Notification
+final class LoadBookedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+    use SendsCompanyMail;
 
     public function __construct(public readonly Load $load)
     {
+        $this->snapshotCompanyMail('load_booked');
     }
 
     /**
@@ -19,7 +23,7 @@ final class LoadBookedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database', 'broadcast'];
+        return $this->companyChannels($notifiable);
     }
 
     /**

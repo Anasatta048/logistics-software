@@ -10,6 +10,8 @@
      * @var float|null $maxUsd
      */
     $askAmount ??= false;
+    $taxRules = \App\Models\TaxRule::query()->active()->get(['id', 'name', 'type', 'value']);
+    $defaultRule = $taxRules->firstWhere('id', $taxRules->firstWhere('is_default', true)?->id ?? 0);
     $maxUsd ??= null;
     $field = 'mt-1 block w-full rounded-input border-border bg-surface text-text-primary shadow-sm focus:border-brand-primary focus:ring-brand-primary dark:bg-surface-dark dark:border-white/10 dark:text-white';
 @endphp
@@ -18,8 +20,10 @@
         rate: @js(old('conversion_rate', $rate)),
         accountId: @js(old('deposit_account_id')),
         taxOn: @js((bool) old('tax_applicable', false)),
-        taxType: @js(old('tax_type', 'percentage')),
-        taxValue: @js(old('tax_value', '')),
+        taxType: @js(old('tax_type', $defaultRule?->type ?? 'percentage')),
+        taxValue: @js(old('tax_value', $defaultRule ? (float) $defaultRule->value : '')),
+        rules: @js($taxRules->map(fn ($r) => ['id' => $r->id, 'type' => $r->type, 'value' => (float) $r->value])->values()),
+        pick(id) { const r = this.rules.find(x => x.id == id); if (r) { this.taxType = r.type; this.taxValue = r.value; } },
         balances: @js($accounts->pluck('current_balance', 'id')->all()),
         @if ($askAmount) usd: @js(old('usd_amount', $maxUsd)), @endif
         get base() { return {{ $askAmount ? 'Number(this.usd) || 0' : 'Number(amount) || 0' }}; },
@@ -86,6 +90,17 @@
         </label>
 
         <div class="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2" x-show="taxOn" x-cloak>
+            @if ($taxRules->isNotEmpty())
+                <div class="sm:col-span-2">
+                    <x-input-label for="tax_rule" :value="__('Tax rule')" />
+                    <select id="tax_rule" class="{{ $field }}" @change="pick($event.target.value)">
+                        <option value="">{{ __('Choose a saved rule…') }}</option>
+                        @foreach ($taxRules as $r)
+                            <option value="{{ $r->id }}" @selected($defaultRule?->id === $r->id)>{{ $r->name }} ({{ $r->summary() }})</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
             <div>
                 <x-input-label for="tax_type" :value="__('Tax type')" />
                 <select id="tax_type" name="tax_type" x-model="taxType" :disabled="! taxOn" class="{{ $field }}">

@@ -9,8 +9,8 @@
                     {{ $payment->company?->name ?? __('Company') }}
                 </h1>
                 <p class="text-sm text-text-muted">
-                    {{ $payment->payment_date->format('M j, Y') }} &middot;
-                    {{ $payment->period_from->format('M j') }} – {{ $payment->period_to->format('M j, Y') }}
+                    {{ $payment->payment_date->format(df()) }} &middot;
+                    {{ $payment->period_from->format('M j') }} – {{ $payment->period_to->format(df()) }}
                 </p>
             </div>
             <div class="flex items-center gap-3">
@@ -118,7 +118,7 @@
                                     <td class="px-4 py-3 font-medium text-text-primary dark:text-white">
                                         {{ $load->reference_number }}
                                     </td>
-                                    <td class="px-4 py-3">{{ \App\Support\Timezones::toUs($load->pickup_at)?->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3">{{ \App\Support\Timezones::toUs($load->pickup_at)?->format(df()) }}</td>
                                     <td class="px-4 py-3 text-right">${{ number_format((float) $load->rate, 2) }}</td>
                                     <td class="px-4 py-3 text-right">{{ number_format((float) $load->company_commission_percentage, 2) }}%</td>
                                     <td class="px-4 py-3 text-right font-semibold">
@@ -171,7 +171,7 @@
                     </div>
                     <div class="flex items-center justify-between">
                         <dt class="text-text-muted">{{ __('Converted on') }}</dt>
-                        <dd>{{ $payment->conversion_date?->format('M j, Y') }} · {{ $payment->converter?->name ?? '—' }}</dd>
+                        <dd>{{ $payment->conversion_date?->format(df()) }} · {{ $payment->converter?->name ?? '—' }}</dd>
                     </div>
                     @if ($payment->conversion_notes)
                         <div class="text-text-muted">{{ $payment->conversion_notes }}</div>

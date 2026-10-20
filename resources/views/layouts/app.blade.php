@@ -46,6 +46,7 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <style>{!! \App\Support\BrandTheme::css() !!}</style>
     </head>
     <body class="font-sans antialiased">
         @php($navPosition = 'sidebar')

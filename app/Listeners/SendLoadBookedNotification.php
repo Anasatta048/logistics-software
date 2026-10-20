@@ -7,15 +7,9 @@ use App\Notifications\LoadBookedNotification;
 
 final class SendLoadBookedNotification
 {
-    /**
-     * Phase 9: notify the load's dispatcher the moment a load is booked.
-     */
+    /** Tell the load's dispatcher (and, if the company wants, the overseers) a load was booked. */
     public function handle(LoadBooked $event): void
     {
-        $dispatcher = $event->load->dispatcher;
-
-        if ($dispatcher && ($dispatcher->notification_preferences['load_booked'] ?? true)) {
-            $dispatcher->notify(new LoadBookedNotification($event->load));
-        }
+        LoadNotifier::send($event->load, 'load_booked', new LoadBookedNotification($event->load));
     }
 }

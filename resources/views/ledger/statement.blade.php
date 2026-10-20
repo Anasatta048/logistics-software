@@ -61,7 +61,7 @@
                     @php $debit = $entry->column() === 'debit'; @endphp
                     <tr class="align-top hover:bg-bg/60 dark:hover:bg-white/5">
                         <td class="px-4 py-3 whitespace-nowrap">
-                            {{ $entry->occurred_on->format('M j, Y') }}
+                            {{ $entry->occurred_on->format(df()) }}
                             <span class="mt-0.5 block text-xs text-text-muted">
                                 <x-datetime :value="$entry->created_at" format="H:i" :stacked="false" />
                             </span>

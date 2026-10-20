@@ -39,6 +39,7 @@ class StoreCompanyRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...\App\Services\Support\CustomFields::rules('company'),
             'name' => ['required', 'string', 'max:255'],
             // Unique across soft-deleted rows too: a retired MC number must not
             // be handed to a different carrier.

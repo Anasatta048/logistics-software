@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Funds flow') }}</x-slot>
 
-    @php($money = fn ($v) => 'Rs '.number_format((float) $v, 2))
+    @php($money = fn ($v) => cur_local().' '.number_format((float) $v, 2))
     <div class="space-y-6">
         <div>
             <h1 class="text-lg font-semibold text-text-primary dark:text-white">{{ __('Funds flow') }}</h1>
@@ -61,7 +61,7 @@
                     <tbody class="divide-y divide-border/60 dark:divide-white/5">
                         @forelse ($rows as $t)
                             <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
-                                <td class="whitespace-nowrap px-4 py-2">{{ $t->occurred_on?->format('M j, Y') }}</td>
+                                <td class="whitespace-nowrap px-4 py-2">{{ $t->occurred_on?->format(df()) }}</td>
                                 <td class="px-4 py-2">{{ $t->account?->name }}</td>
                                 <td class="px-4 py-2">@if ($t->flow['url'])<a href="{{ $t->flow['url'] }}" class="font-medium hover:text-brand-primary">{{ $t->flow['title'] }}</a>@else<span class="font-medium">{{ $t->flow['title'] }}</span>@endif</td>
                                 <td class="px-4 py-2 text-text-muted">{{ $t->flow['party'] ?: '—' }}</td>

@@ -20,8 +20,10 @@ use Illuminate\Support\Facades\Log;
 
 final class CommissionService
 {
-    public function __construct(private readonly LedgerService $ledger)
-    {
+    public function __construct(
+        private readonly LedgerService $ledger,
+        private readonly TieredCommission $tiers,
+    ) {
     }
 
     /**
@@ -59,9 +61,14 @@ final class CommissionService
         // no company, so no commission) and a fixed cut earns the same on every
         // dispatch. Either way a row is still written rather than skipped, so
         // the dispatcher report shows the load was considered.
-        $amount = $type === CommissionType::Fixed
-            ? max(0, (float) $dispatcher->commission_fixed_amount)
-            : round(max(0, $base) * $percentage / 100, 2);
+        if ($type !== CommissionType::Fixed && $this->tiers->enabled()) {
+            // Slab commission: the company's ladder replaces the dispatcher's flat %.
+            ['amount' => $amount, 'effective_rate' => $percentage] = $this->tiers->amountFor($dispatcherId, $load, $base);
+        } else {
+            $amount = $type === CommissionType::Fixed
+                ? max(0, (float) $dispatcher->commission_fixed_amount)
+                : round(max(0, $base) * $percentage / 100, 2);
+        }
 
         $commission = Commission::updateOrCreate(
             ['load_id' => $load->id],

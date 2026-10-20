@@ -39,6 +39,7 @@ class StoreDriverRequest extends FormRequest
     public function rules(): array
     {
         return [
+            ...\App\Services\Support\CustomFields::rules('driver'),
             'company_id' => [
                 'required',
                 'integer',

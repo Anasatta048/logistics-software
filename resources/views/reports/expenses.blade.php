@@ -2,7 +2,7 @@
     <x-slot name="header">{{ __('Expense report') }}</x-slot>
 
     @php
-        $money = fn ($v) => 'Rs '.number_format((float) $v, 2);
+        $money = fn ($v) => cur_local().' '.number_format((float) $v, 2);
         $sections = [
             ['key' => 'category', 'title' => __('By category'), 'col' => __('Category'), 'rows' => array_values($rows)],
             ['key' => 'month', 'title' => __('By month'), 'col' => __('Month'), 'rows' => $months],

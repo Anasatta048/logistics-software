@@ -49,16 +49,16 @@
                             @foreach ($invoices as $invoice)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
                                     <td class="px-4 py-3 font-semibold text-text-primary dark:text-white">
-                                        <a href="{{ route('invoices.show', $invoice) }}" class="hover:text-brand-primary">#{{ $invoice->invoice_number }}</a>
+                                        <a href="{{ route('invoices.show', $invoice) }}" class="hover:text-brand-primary">#{{ $invoice->label() }}</a>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $invoice->invoice_date->toDateString() }}">{{ $invoice->invoice_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $invoice->invoice_date->toDateString() }}">{{ $invoice->invoice_date->format(df()) }}</td>
                                     <td class="px-4 py-3">{{ $invoice->driver_name }}</td>
                                     <td class="px-4 py-3">
                                         {{ $invoice->company->name }}
                                         <span class="block text-xs text-text-muted">MC {{ $invoice->company->mc_number }}</span>
                                     </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-text-muted">
-                                        {{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format('M j, Y') }}
+                                        {{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format(df()) }}
                                     </td>
                                     <td class="px-4 py-3 text-right">{{ $invoice->lines_count }}</td>
                                     <td class="px-4 py-3 text-right font-semibold text-text-primary dark:text-white">${{ number_format($invoice->due(), 2) }}</td>

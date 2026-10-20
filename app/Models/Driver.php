@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DriverStatus;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasCustomFields;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,11 +23,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Driver extends Model
 {
     use BelongsToTenant;
+    use HasCustomFields;
 
     /** @use HasFactory<\Database\Factories\DriverFactory> */
     use HasFactory;
 
     use SoftDeletes;
+
+    protected string $customEntity = 'driver';
 
     /**
      * The attributes that are mass assignable.
@@ -34,6 +38,7 @@ class Driver extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'custom',
         'company_id',
         'name',
         'truck_number',

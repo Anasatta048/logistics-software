@@ -42,6 +42,9 @@
                                 <th class="px-4 py-3">Miles</th>
                                 <th class="px-4 py-3">Rate / mi</th>
                                 <th data-filter="select" class="px-4 py-3">Status</th>
+                                @foreach (\App\Services\Support\CustomFields::for('load')->where('show_in_list', true) as $cf)
+                                    <th class="px-4 py-3">{{ $cf->label }}</th>
+                                @endforeach
                                 <th class="px-4 py-3 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -78,6 +81,9 @@
                                     <td class="px-4 py-3">
                                         @include('loads.partials.status-controls', ['load' => $load])
                                     </td>
+                                    @foreach (\App\Services\Support\CustomFields::for('load')->where('show_in_list', true) as $cf)
+                                        <td class="px-4 py-3 text-text-muted">{{ \App\Services\Support\CustomFields::display($cf, $load->customValue($cf->key)) }}</td>
+                                    @endforeach
                                     <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-3">
                                             @can('view', $load)

@@ -50,11 +50,11 @@
                                             <span class="block text-xs font-normal text-text-muted">{{ $payment->reference }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap">{{ $payment->payment_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">{{ $payment->payment_date->format(df()) }}</td>
                                     <td class="px-4 py-3">{{ $payment->company?->name ?? '—' }}</td>
                                     <td class="px-4 py-3">
                                         @if ($payment->invoice)
-                                            <a href="{{ route('invoices.show', $payment->invoice) }}" class="text-brand-primary hover:underline">#{{ $payment->invoice->invoice_number }}</a>
+                                            <a href="{{ route('invoices.show', $payment->invoice) }}" class="text-brand-primary hover:underline">#{{ $payment->invoice->label() }}</a>
                                         @else
                                             <span class="text-text-muted">—</span>
                                         @endif
@@ -66,7 +66,7 @@
                                     <td class="px-4 py-3"><x-status-badge :status="$payment->status" /></td>
                                     <td class="px-4 py-3 whitespace-nowrap text-xs">
                                         @if ($payment->converted_at)
-                                            <span class="text-status-paid">{{ $payment->conversion_date->format('M j, Y') }}</span>
+                                            <span class="text-status-paid">{{ $payment->conversion_date->format(df()) }}</span>
                                         @else
                                             <span class="text-text-muted">{{ __('Not yet') }}</span>
                                         @endif

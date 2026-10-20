@@ -2,8 +2,8 @@
     <x-slot name="header">{{ __('Profit & Loss') }}</x-slot>
 
     @php
-        $pkr = fn ($v) => 'Rs '.number_format((float) $v, 2);
-        $usd = fn ($v) => '$'.number_format((float) $v, 2);
+        $pkr = fn ($v) => cur_local().' '.number_format((float) $v, 2);
+        $usd = fn ($v) => cur_foreign().number_format((float) $v, 2);
     @endphp
     <div class="space-y-6">
         <div>

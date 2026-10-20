@@ -16,7 +16,7 @@
                 <div class="flex flex-wrap items-center gap-3">
                     <span class="px-2.5 py-1 text-xs font-bold {{ $tenant->status->color() }}">{{ $tenant->status->label() }}</span>
                     @if ($tenant->endsAt())
-                        <span class="text-sm text-text-muted">{{ $tenant->status->value === 'trial' ? __('Trial ends') : __('Paid until') }} <strong class="text-text-primary dark:text-white">{{ $tenant->endsAt()->format('d M Y') }}</strong></span>
+                        <span class="text-sm text-text-muted">{{ $tenant->status->value === 'trial' ? __('Trial ends') : __('Paid until') }} <strong class="text-text-primary dark:text-white">{{ $tenant->endsAt()->format(df()) }}</strong></span>
                     @endif
                     @if ($tenant->suspended_reason)<span class="text-sm text-warning">{{ $tenant->suspended_reason }}</span>@endif
                     <form method="POST" action="{{ route('super-admin.tenants.enter', $tenant) }}" class="ml-auto">

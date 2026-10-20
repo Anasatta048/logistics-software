@@ -29,6 +29,7 @@ final class TenantContext
 
         app(PermissionRegistrar::class)->setPermissionsTeamId($tenant?->id);
         Timezones::flush();
+        \App\Services\Support\CustomFields::flush();
 
         if ($tenant) {
             InvoiceProfile::apply();

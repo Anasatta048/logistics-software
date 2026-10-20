@@ -80,6 +80,12 @@ class Invoice extends Model
         return $this->belongsTo(self::class, 'carried_to_id');
     }
 
+    /** The number as the company writes it: optional prefix + number (INV-1001). */
+    public function label(): string
+    {
+        return config('invoice.prefix', '').$this->invoice_number;
+    }
+
     public function amountPaid(): float
     {
         return round((float) $this->payments()->sum('amount_received'), 2);
@@ -119,6 +125,6 @@ class Invoice extends Model
         // e.g. "JAMES GOODMAN INVOICE 1329.pdf"
         $driver = trim(preg_replace('/[^A-Za-z0-9 \-]+/', '', (string) $this->driver_name));
 
-        return trim(strtoupper($driver).' INVOICE '.$this->invoice_number).'.pdf';
+        return trim(strtoupper($driver).' INVOICE '.$this->label()).'.pdf';
     }
 }

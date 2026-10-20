@@ -41,8 +41,8 @@
                                     <td class="px-4 py-3"><span class="font-medium text-text-primary dark:text-white">{{ $tenant->name }}</span><br><span class="text-xs text-text-muted">{{ $tenant->email }}</span></td>
                                     <td class="px-4 py-3">{{ $tenant->plan?->name ?? '—' }} <span class="text-xs text-text-muted">· {{ $tenant->billing_cycle }}</span></td>
                                     <td class="px-4 py-3"><span class="px-2 py-0.5 text-[11px] font-bold {{ $tenant->status->color() }}">{{ $tenant->status->label() }}</span></td>
-                                    <td class="px-4 py-3 text-text-muted">{{ $tenant->endsAt()?->format('d M Y') ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-text-muted">{{ $tenant->created_at->format('d M Y') }}</td>
+                                    <td class="px-4 py-3 text-text-muted">{{ $tenant->endsAt()?->format(df()) ?? '—' }}</td>
+                                    <td class="px-4 py-3 text-text-muted">{{ $tenant->created_at->format(df()) }}</td>
                                     <td class="px-4 py-3 text-right"><a href="{{ route('super-admin.tenants.show', $tenant) }}" class="text-text-muted hover:text-brand-primary" title="{{ __('Open') }}"><x-icon name="eye" :size="16" /></a></td>
                                 </tr>
                             @endforeach

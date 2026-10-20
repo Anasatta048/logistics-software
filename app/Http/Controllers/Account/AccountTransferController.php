@@ -46,7 +46,7 @@ final class AccountTransferController extends Controller
         $transfer = $this->transfers->create($data, $request->user());
 
         return redirect()->route('account-transfers.index')
-            ->with('success', 'Moved Rs '.number_format((float) $transfer->amount, 2)." from {$transfer->from->name} to {$transfer->to->name}.");
+            ->with('success', 'Moved '.cur_local().' '.number_format((float) $transfer->amount, 2)." from {$transfer->from->name} to {$transfer->to->name}.");
     }
 
     public function reverse(Request $request, AccountTransfer $accountTransfer): RedirectResponse

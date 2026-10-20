@@ -39,12 +39,12 @@
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <x-card class="px-4 py-3">
                 <div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Total shown') }}</div>
-                <div class="text-xl font-extrabold text-text-primary dark:text-white">Rs {{ number_format($total, 2) }}</div>
+                <div class="text-xl font-extrabold text-text-primary dark:text-white">{{ cur_local() }} {{ number_format($total, 2) }}</div>
             </x-card>
             @foreach ($categories->filter(fn ($c) => ($byCategory[$c->id] ?? 0) > 0)->sortByDesc(fn ($c) => $byCategory[$c->id])->take(3) as $category)
                 <x-card class="px-4 py-3">
                     <div class="truncate text-xs uppercase tracking-wider text-text-muted">{{ $category->name }}</div>
-                    <div class="text-xl font-semibold text-text-primary dark:text-white">Rs {{ number_format($byCategory[$category->id], 2) }}</div>
+                    <div class="text-xl font-semibold text-text-primary dark:text-white">{{ cur_local() }} {{ number_format($byCategory[$category->id], 2) }}</div>
                 </x-card>
             @endforeach
         </div>
@@ -76,14 +76,14 @@
                         <tbody class="divide-y divide-border/60 dark:divide-white/5">
                             @foreach ($expenses as $expense)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $expense->expense_date->toDateString() }}">{{ $expense->expense_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $expense->expense_date->toDateString() }}">{{ $expense->expense_date->format(df()) }}</td>
                                     <td class="px-4 py-3"><span class="bg-bg px-2 py-0.5 text-xs font-semibold text-text-primary dark:bg-white/10 dark:text-white">{{ $expense->category?->name ?? '—' }}</span></td>
                                     <td class="px-4 py-3">
                                         <span class="text-text-primary dark:text-white">{{ $expense->payee ?: '—' }}</span>
                                         @if ($expense->reference)<span class="block text-xs text-text-muted">#{{ $expense->reference }}</span>@endif
                                         @if ($expense->notes)<span class="block max-w-xs truncate text-xs text-text-muted" title="{{ $expense->notes }}">{{ $expense->notes }}</span>@endif
                                     </td>
-                                    <td class="px-4 py-3 text-right font-medium text-text-primary dark:text-white">Rs {{ number_format((float) $expense->amount, 2) }}</td>
+                                    <td class="px-4 py-3 text-right font-medium text-text-primary dark:text-white">{{ cur_local() }} {{ number_format((float) $expense->amount, 2) }}</td>
                                     <td class="px-4 py-3">{{ $expense->account?->name ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ $expense->payment_method?->label() ?? '—' }}</td>
                                     <td class="px-4 py-3 text-text-muted">{{ $expense->attachment_path ? __('Attached') : '—' }}</td>

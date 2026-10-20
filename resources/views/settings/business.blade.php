@@ -21,6 +21,9 @@
                 @endforeach
                 <div class="my-2 border-t border-border dark:border-white/10"></div>
                 @foreach ([
+                    ['tax-rules.index', __('Tax rules'), 'percent', 'settings.manage'],
+                    ['commission-tiers.edit', __('Commission slabs'), 'layers', 'settings.manage'],
+                    ['custom-fields.index', __('Custom fields'), 'layers', 'settings.manage'],
                     ['expense-categories.index', __('Expense categories'), 'tag', 'expense-categories.view'],
                     ['equipment-types.index', __('Equipment types'), 'truck', 'equipment-types.view'],
                     ['settings.timezones.edit', __('Timezones'), 'clock', 'settings.manage'],
@@ -35,13 +38,13 @@
                 @endforeach
             </nav>
 
-            <form method="POST" action="{{ route('settings.business.update', $group) }}" class="space-y-5">
+            <form method="POST" action="{{ route('settings.business.update', $group) }}" enctype="multipart/form-data" class="space-y-5">
                 @csrf @method('PATCH')
                 <x-form-section :title="__($schema['label'])" :icon="$schema['icon']" :description="__($schema['description'])">
                     <div class="grid gap-4 sm:grid-cols-2">
                         @foreach ($schema['fields'] as $name => $field)
                             @php($value = old($name, $values[$name]))
-                            @php($wide = in_array($field['type'], ['textarea', 'multiselect'], true))
+                            @php($wide = in_array($field['type'], ['textarea', 'multiselect', 'image'], true))
                             <x-field :name="$name" :label="__($field['label'])" :hint="isset($field['hint']) ? __($field['hint']) : null" :required="$field['required'] ?? false" class="{{ $wide ? 'sm:col-span-2' : '' }}">
                                 @switch($field['type'])
                                     @case('textarea')
@@ -62,6 +65,25 @@
                                                     {{ $optLabel }}
                                                 </label>
                                             @endforeach
+                                        </div>
+                                        @break
+                                    @case('toggle')
+                                        <label class="flex items-center gap-2 text-sm">
+                                            <input type="checkbox" name="{{ $name }}" value="1" class="text-brand-primary focus:ring-brand-primary" @checked($value)>
+                                            {{ __('Yes') }}
+                                        </label>
+                                        @break
+                                    @case('image')
+                                        <div class="flex items-center gap-4">
+                                            @if ($value)
+                                                <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($value) }}" alt="" class="h-14 max-w-[10rem] border border-border bg-white object-contain p-1">
+                                            @endif
+                                            <div class="space-y-1">
+                                                <input id="{{ $name }}" type="file" name="{{ $name }}" accept=".png,.jpg,.jpeg,.webp" class="text-sm">
+                                                @if ($value)
+                                                    <label class="flex items-center gap-2 text-xs text-text-muted"><input type="checkbox" name="remove_{{ $name }}" value="1"> {{ __('Remove current') }}</label>
+                                                @endif
+                                            </div>
                                         </div>
                                         @break
                                     @case('color')

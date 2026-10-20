@@ -32,5 +32,7 @@ require __DIR__.'/modules/journal-vouchers.php';
 require __DIR__.'/modules/reports.php';
 require __DIR__.'/modules/notifications.php';
 require __DIR__.'/modules/settings.php';
+require __DIR__.'/modules/custom-fields.php';
+require __DIR__.'/modules/money-settings.php';
 require __DIR__.'/modules/activity-logs.php';
 require __DIR__.'/modules/maps.php';

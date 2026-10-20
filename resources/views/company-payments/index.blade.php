@@ -54,10 +54,10 @@
                                     <td class="px-4 py-3 font-medium text-text-primary dark:text-white">
                                         <a href="{{ route('company-payments.show', $payment) }}" class="hover:underline">#{{ $payment->id }}</a>
                                     </td>
-                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $payment->payment_date->toDateString() }}">{{ $payment->payment_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $payment->payment_date->toDateString() }}">{{ $payment->payment_date->format(df()) }}</td>
                                     <td class="px-4 py-3">{{ $payment->company?->name ?? '—' }}</td>
                                     <td class="px-4 py-3 text-xs text-text-muted whitespace-nowrap">
-                                        {{ $payment->period_from->format('M j') }} – {{ $payment->period_to->format('M j, Y') }}
+                                        {{ $payment->period_from->format('M j') }} – {{ $payment->period_to->format(df()) }}
                                     </td>
                                     <td class="px-4 py-3 text-right">${{ number_format((float) $payment->total_due, 2) }}</td>
                                     <td class="px-4 py-3 text-right">${{ number_format((float) $payment->amount_received, 2) }}</td>
@@ -67,7 +67,7 @@
                                     <td class="px-4 py-3"><x-status-badge :status="$payment->status" /></td>
                                     <td class="px-4 py-3 text-xs">
                                         @if ($payment->isLocked())
-                                            <span class="text-status-paid">{{ $payment->conversion_date->format('M j, Y') }}</span>
+                                            <span class="text-status-paid">{{ $payment->conversion_date->format(df()) }}</span>
                                         @else
                                             <span class="text-text-muted">{{ __('Not yet') }}</span>
                                         @endif

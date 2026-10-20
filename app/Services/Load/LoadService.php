@@ -16,6 +16,8 @@ use App\Models\LoadAttachment;
 use App\Models\User;
 use App\Services\Driver\DriverService;
 use App\Services\Support\AttachmentOptimizer;
+use App\Services\Support\NumberSequence;
+use App\Support\Settings\TenantSettings;
 use App\Support\Timezones;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -45,9 +47,8 @@ final readonly class LoadService
             $load->status = LoadStatus::Booked;
             $load->save();
 
-            // ponytail: the primary key is the only collision-free counter we
-            // have, so the reference is stamped in a second write rather than
-            // adding a sequence table.
+            // Stamped in a second write inside the same transaction, from the
+            // company's own gap-free counter (see NumberSequence).
             if (blank($load->reference_number)) {
                 $load->update(['reference_number' => $this->referenceNumberFor($load->id)]);
             }
@@ -289,15 +290,17 @@ final readonly class LoadService
         return $data;
     }
 
+    /** Next free number in the company's own format (prefix, digits, start). */
     private function referenceNumberFor(int $id): string
     {
-        $base = 'DEL-'.str_pad((string) $id, 6, '0', STR_PAD_LEFT);
-        $reference = $base;
+        $prefix = (string) TenantSettings::get('numbering.load_prefix', 'LD');
+        $padding = (int) TenantSettings::get('numbering.load_padding', 4);
+        $start = (int) TenantSettings::get('numbering.load_start_number', 1);
 
-        // A hand-typed number may already sit on the next automatic one.
-        for ($suffix = 2; Load::withTrashed()->where('reference_number', $reference)->exists(); $suffix++) {
-            $reference = "{$base}-{$suffix}";
-        }
+        // A hand-typed number may already sit on the next automatic one: skip past it.
+        do {
+            $reference = NumberSequence::format($prefix, NumberSequence::next('load', $start), $padding);
+        } while (Load::withTrashed()->where('reference_number', $reference)->exists());
 
         return $reference;
     }

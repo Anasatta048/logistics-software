@@ -50,7 +50,7 @@
                         <tbody class="divide-y divide-border/60 dark:divide-white/5">
                             @foreach ($payouts as $payout)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 whitespace-nowrap">{{ $payout->paid_at->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">{{ $payout->paid_at->format(df()) }}</td>
                                     <td class="px-4 py-3 text-right font-medium">${{ number_format((float) $payout->usd_amount, 2) }}</td>
                                     <td class="px-4 py-3 text-right text-text-muted">{{ rtrim(rtrim((string) $payout->conversion_rate, '0'), '.') }}</td>
                                     <td class="px-4 py-3 text-right">Rs {{ number_format((float) $payout->pkr_amount, 2) }}</td>

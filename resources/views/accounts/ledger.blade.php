@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Ledger') }} — {{ $account->name }}</x-slot>
 
-    @php($money = fn ($v) => 'Rs '.number_format((float) $v, 2))
+    @php($money = fn ($v) => cur_local().' '.number_format((float) $v, 2))
     <div class="space-y-6">
         <div class="form-page-head !mb-0 flex-wrap">
             <span class="form-page-icon"><x-icon name="wallet" :size="26" /></span>
@@ -44,12 +44,12 @@
                     </thead>
                     <tbody class="divide-y divide-border/60 dark:divide-white/5">
                         <tr class="bg-bg/60 text-text-muted dark:bg-white/5">
-                            <td class="px-4 py-2" colspan="5">{{ __('Opening balance') }}@if ($from) · {{ \Illuminate\Support\Carbon::parse($from)->format('M j, Y') }}@endif</td>
+                            <td class="px-4 py-2" colspan="5">{{ __('Opening balance') }}@if ($from) · {{ \Illuminate\Support\Carbon::parse($from)->format(df()) }}@endif</td>
                             <td class="px-4 py-2 text-right font-semibold">{{ number_format($statement['opening'], 2) }}</td>
                         </tr>
                         @forelse ($statement['rows'] as $tx)
                             <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
-                                <td class="whitespace-nowrap px-4 py-2.5">{{ $tx->occurred_on?->format('M j, Y') ?? $tx->created_at->format('M j, Y') }}</td>
+                                <td class="whitespace-nowrap px-4 py-2.5">{{ $tx->occurred_on?->format(df()) ?? $tx->created_at->format(df()) }}</td>
                                 <td class="px-4 py-2.5">
                                     @if ($tx->flow['url'])
                                         <a href="{{ $tx->flow['url'] }}" class="font-medium text-text-primary hover:text-brand-primary dark:text-white">{{ $tx->flow['title'] }}</a>

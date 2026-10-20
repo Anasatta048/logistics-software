@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header">{{ __('Invoice') }} #{{ $invoice->invoice_number }}</x-slot>
+    <x-slot name="header">{{ __('Invoice') }} #{{ $invoice->label() }}</x-slot>
 
     <div class="space-y-5">
         @if (session('success'))
@@ -24,7 +24,7 @@
                     <a href="{{ route('invoices.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-white/60 hover:text-white"><x-icon name="arrow-left" :size="13" /> {{ __('All invoices') }}</a>
                     <p class="mt-3 text-[11px] font-bold uppercase tracking-[0.25em] text-brand-primary">{{ __('Invoice') }}</p>
                     <h1 class="mt-1 flex flex-wrap items-center gap-3 text-3xl font-extrabold tracking-tight">
-                        #{{ $invoice->invoice_number }}
+                        #{{ $invoice->label() }}
                         @if ($invoice->isCarried())
                             <span class="lookup-badge">{{ __('Carried to #:n', ['n' => $invoice->carriedTo?->invoice_number]) }}</span>
                         @else
@@ -39,14 +39,14 @@
                         <span class="mx-2 text-white/30">|</span>
                         <x-icon name="user" :size="14" class="mr-1 inline" />{{ $invoice->driver_name }}
                         <span class="mx-2 text-white/30">|</span>
-                        <x-icon name="calendar" :size="14" class="mr-1 inline" />{{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format('M j, Y') }}
+                        <x-icon name="calendar" :size="14" class="mr-1 inline" />{{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format(df()) }}
                     </p>
                 </div>
 
                 <div class="text-right">
                     <p class="text-xs uppercase tracking-wider text-white/60">{{ $invoice->balance() > 0 ? __('Balance due') : __('Total due') }}</p>
                     <p class="text-4xl font-extrabold">${{ number_format($invoice->balance() > 0 ? $invoice->balance() : $due, 2) }}</p>
-                    <p class="mt-1 text-xs text-white/60">{{ __('Due') }} {{ $invoice->due_date->format('M j, Y') }}</p>
+                    <p class="mt-1 text-xs text-white/60">{{ __('Due') }} {{ $invoice->due_date->format(df()) }}</p>
                 </div>
             </div>
 
@@ -77,8 +77,8 @@
             @foreach ([
                 [__('Total due'), '$'.number_format($due, 2), 'dollar', 'text-brand-primary'],
                 [__('Received'), '$'.number_format($paidAmt, 2), 'check-circle', 'text-status-paid'],
-                [__('Invoice date'), $invoice->invoice_date->format('M j, Y'), 'calendar', 'text-text-primary dark:text-white'],
-                [__('Due date'), $invoice->due_date->format('M j, Y'), 'clock', $overdue ? 'text-status-cancelled' : 'text-text-primary dark:text-white'],
+                [__('Invoice date'), $invoice->invoice_date->format(df()), 'calendar', 'text-text-primary dark:text-white'],
+                [__('Due date'), $invoice->due_date->format(df()), 'clock', $overdue ? 'text-status-cancelled' : 'text-text-primary dark:text-white'],
             ] as [$label, $value, $icon, $tone])
                 <div class="flex items-center gap-3 bg-surface p-4 dark:bg-surface-dark">
                     <span class="grid h-10 w-10 shrink-0 place-items-center bg-brand-primary/10 text-brand-primary"><x-icon :name="$icon" :size="18" /></span>
@@ -104,7 +104,7 @@
                     <div class="border-b border-border/60 px-5 py-3 text-sm font-semibold text-text-primary dark:border-white/10 dark:text-white">
                         {{ __('Loads on this invoice') }}
                         <span class="ml-1 text-xs font-normal text-text-muted">
-                            {{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format('M j, Y') }}
+                            {{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format(df()) }}
                         </span>
                     </div>
                     <div class="overflow-x-auto">
@@ -122,7 +122,7 @@
                             <tbody class="divide-y divide-border/60 dark:divide-white/5">
                                 @foreach ($invoice->lines as $line)
                                     <tr>
-                                        <td class="px-4 py-3 whitespace-nowrap">{{ $line->load_date->format('M j, Y') }}</td>
+                                        <td class="px-4 py-3 whitespace-nowrap">{{ $line->load_date->format(df()) }}</td>
                                         <td class="px-4 py-3">
                                             {{ $line->description }}
                                             <span class="block text-xs text-text-muted">{{ $line->loadRecord?->reference_number }}</span>
@@ -176,7 +176,7 @@
                                             ${{ number_format((float) $payment->amount_received, 2) }}
                                         </a>
                                         <span class="ml-2 text-xs text-text-muted">
-                                            {{ $payment->payment_date->format('M j, Y') }} · {{ $payment->payment_method?->label() ?? '—' }}
+                                            {{ $payment->payment_date->format(df()) }} · {{ $payment->payment_method?->label() ?? '—' }}
                                             @if ($payment->reference) · {{ $payment->reference }} @endif
                                         </span>
                                     </div>
@@ -229,7 +229,7 @@
                     <div>
                         <h4 class="text-base font-semibold text-text-primary dark:text-white">{{ __('Record payment') }}</h4>
                         <p class="text-sm text-text-muted">
-                            {{ __('Invoice #:n — balance :b. Every payment is posted to the company\'s ledger.', ['n' => $invoice->invoice_number, 'b' => '$'.number_format($invoice->balance(), 2)]) }}
+                            {{ __('Invoice #:n — balance :b. Every payment is posted to the company\'s ledger.', ['n' => $invoice->label(), 'b' => '$'.number_format($invoice->balance(), 2)]) }}
                         </p>
                     </div>
                     <div x-data="{

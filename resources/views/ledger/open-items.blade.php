@@ -44,7 +44,7 @@
                         <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
                             <td class="px-4 py-3 font-medium text-text-primary dark:text-white">{{ $item->label }}</td>
                             <td class="px-4 py-3 whitespace-nowrap text-text-muted">
-                                {{ \Illuminate\Support\Carbon::parse($item->occurred_on)->format('M j, Y') }}
+                                {{ \Illuminate\Support\Carbon::parse($item->occurred_on)->format(df()) }}
                                 @unless ($settled)
                                     <span class="block text-xs">{{ trans_choice(':count day open|:count days open', $age) }}</span>
                                 @endunless

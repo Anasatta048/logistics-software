@@ -9,7 +9,7 @@
         'text-status-paid' => $tone === 'good',
         'text-text-primary dark:text-white' => ! in_array($tone, ['bad', 'good'], true),
     ])>
-        {{ $money ? ($currency === 'pkr' ? 'Rs ' : '$').number_format((float) $value, 2) : $value }}
+        {{ $money ? ($currency === 'pkr' ? cur_local().' ' : cur_foreign()).number_format((float) $value, 2) : $value }}
     </div>
     @if ($hint)
         <div class="text-xs text-text-muted">{{ $hint }}</div>

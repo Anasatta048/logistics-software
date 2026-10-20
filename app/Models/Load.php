@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\LoadStatus;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasCustomFields;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,11 +27,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Load extends Model
 {
     use BelongsToTenant;
+    use HasCustomFields;
 
     /** @use HasFactory<\Database\Factories\LoadFactory> */
     use HasFactory;
 
     use SoftDeletes;
+
+    protected string $customEntity = 'load';
 
     /**
      * The attributes that are mass assignable.
@@ -38,6 +42,7 @@ class Load extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'custom',
         'reference_number',
         'company_id',
         'broker_id',

@@ -6,6 +6,7 @@ use App\Enums\CompanyStatus;
 use App\Enums\PaymentCurrency;
 use App\Enums\PaymentFrequency;
 use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\HasCustomFields;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,11 +24,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Company extends Model
 {
     use BelongsToTenant;
+    use HasCustomFields;
 
     /** @use HasFactory<\Database\Factories\CompanyFactory> */
     use HasFactory;
 
     use SoftDeletes;
+
+    protected string $customEntity = 'company';
 
     /**
      * The attributes that are mass assignable.
@@ -35,6 +39,7 @@ class Company extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'custom',
         'name',
         'mc_number',
         'address',

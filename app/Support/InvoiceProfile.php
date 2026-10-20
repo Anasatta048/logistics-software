@@ -15,6 +15,7 @@ final class InvoiceProfile
     {
         $business = TenantSettings::all('business');
         $finance = TenantSettings::all('finance');
+        $brand = TenantSettings::all('branding');
 
         config([
             'invoice.company_name' => $business['name'],
@@ -25,7 +26,10 @@ final class InvoiceProfile
             'invoice.tax_id' => (string) $business['tax_id'],
             'invoice.due_days' => (int) $finance['invoice_due_days'],
             'invoice.start_number' => (int) $finance['invoice_start_number'],
-            'invoice.brand_color' => (string) $finance['invoice_color'],
+            'invoice.brand_color' => (string) $brand['accent_color'],
+            'invoice.navy_color' => (string) $brand['sidebar_color'],
+            'invoice.template' => (string) $brand['invoice_template'],
+            'invoice.prefix' => (string) TenantSettings::get('numbering.invoice_prefix', ''),
             'invoice.note' => (string) $finance['invoice_note'],
         ]);
     }

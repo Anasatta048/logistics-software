@@ -1,6 +1,8 @@
 @php
     $brand = config('invoice.brand_color', '#E8622C');
-    $navy = '#1B2A4A';
+    $navy = config('invoice.navy_color', '#1B2A4A');
+    $compact = config('invoice.template') === 'compact';
+    $logo = \App\Support\BrandTheme::logoDataUri();
     $company = $invoice->company;
 
 
@@ -13,14 +15,14 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <title>Invoice {{ $invoice->label() }}</title>
     <style>
         @page { margin: 0; }
         * { box-sizing: border-box; }
-        body { font-family: Helvetica, Arial, sans-serif; font-size: 10px; color: #1F2333; margin: 0; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: {{ $compact ? '8.5px' : '10px' }}; color: #1F2333; margin: 0; }
         table { border-collapse: collapse; width: 100%; }
         .page { padding: 0 38px 120px; }
-        .head { background: {{ $navy }}; color: #fff; padding: 26px 38px 22px; border-bottom: 5px solid {{ $brand }}; }
+        .head { background: {{ $navy }}; color: #fff; padding: {{ $compact ? '16px 38px 14px' : '26px 38px 22px' }}; border-bottom: 5px solid {{ $brand }}; }
         .head td { vertical-align: middle; }
         .word { font-size: 30px; font-weight: bold; letter-spacing: 6px; text-align: right; }
         .num { text-align: right; color: #C9D2E6; font-size: 11px; margin-top: 4px; }
@@ -33,7 +35,7 @@
         .kv td.v { font-weight: bold; text-align: right; }
         .lines { margin-top: 22px; }
         .lines th { background: {{ $navy }}; color: #fff; font-size: 8px; letter-spacing: .6px; text-transform: uppercase; text-align: left; padding: 8px 8px; }
-        .lines td { padding: 9px 8px; border-bottom: 1px solid #E5E7EB; vertical-align: top; }
+        .lines td { padding: {{ $compact ? '5px 8px' : '9px 8px' }}; border-bottom: 1px solid #E5E7EB; vertical-align: top; }
         .lines tr.alt td { background: #FAFAFC; }
         .r, .lines th.r { text-align: right; white-space: nowrap; }
         .lines th.c { text-align: center; }
@@ -55,7 +57,11 @@
         <table>
             <tr>
                 <td style="width: 55%;">
-                    <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">{{ strtoupper(config('invoice.company_name')) }}</div>
+                    @if ($logo)
+                        <img src="{{ $logo }}" style="height: {{ $compact ? '38px' : '54px' }}; max-width: 220px;" alt="{{ config('invoice.company_name') }}">
+                    @else
+                        <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">{{ strtoupper(config('invoice.company_name')) }}</div>
+                    @endif
                     <div class="co">
                         @if (config('invoice.address')){{ config('invoice.address') }}<br>@endif
                         {{ config('invoice.email') }}@if (config('invoice.phone')) · {{ config('invoice.phone') }}@endif
@@ -64,7 +70,7 @@
                 </td>
                 <td>
                     <div class="word">INVOICE</div>
-                    <div class="num"># {{ $invoice->invoice_number }}</div>
+                    <div class="num"># {{ $invoice->label() }}</div>
                 </td>
             </tr>
         </table>
@@ -89,9 +95,9 @@
                     <div class="label">Invoice details</div>
                     <div class="card" style="min-height: 104px;">
                         <table class="kv">
-                            <tr><td class="k">Invoice date</td><td class="v">{{ $invoice->invoice_date->format('M j, Y') }}</td></tr>
-                            <tr><td class="k">Due date</td><td class="v">{{ $invoice->due_date->format('M j, Y') }}</td></tr>
-                            <tr><td class="k">Period</td><td class="v">{{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format('M j, Y') }}</td></tr>
+                            <tr><td class="k">Invoice date</td><td class="v">{{ $invoice->invoice_date->format(df()) }}</td></tr>
+                            <tr><td class="k">Due date</td><td class="v">{{ $invoice->due_date->format(df()) }}</td></tr>
+                            <tr><td class="k">Period</td><td class="v">{{ $invoice->period_from->format('M j') }} – {{ $invoice->period_to->format(df()) }}</td></tr>
                             <tr><td class="k">Driver</td><td class="v">{{ strtoupper($invoice->driver_name) }}</td></tr>
                             @if ($invoice->dispatcher_name)
                                 <tr><td class="k">Dispatcher</td><td class="v">{{ strtoupper($invoice->dispatcher_name) }} · {{ $invoice->dispatcher_phone ?: config('invoice.phone') }}</td></tr>
@@ -117,7 +123,7 @@
             <tbody>
                 @foreach ($invoice->lines as $line)
                     <tr class="{{ $loop->even ? 'alt' : '' }}">
-                        <td>{{ $line->load_date->format('M j, Y') }}</td>
+                        <td>{{ $line->load_date->format(df()) }}</td>
                         <td>
                             <div style="font-weight: bold;">{{ $line->description }}</div>
                             @if ($line->loadRecord?->reference_number)<div class="ref">{{ $line->loadRecord->reference_number }}</div>@endif

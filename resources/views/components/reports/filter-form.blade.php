@@ -30,6 +30,25 @@
         </div>
     @endif
 
+    @if ($dates)
+        @php
+            $today = \Illuminate\Support\Carbon::today();
+            $presets = [
+                __('Today') => [$today, $today],
+                __('This week') => [$today->copy()->startOfWeek(week_start_day()), $today],
+                __('This month') => [$today->copy()->startOfMonth(), $today],
+                __('Last 30 days') => [$today->copy()->subDays(29), $today],
+                __('Financial year') => [fiscal_year_start(), $today],
+            ];
+        @endphp
+        <div class="flex flex-wrap items-center gap-1 self-end pb-1 text-xs">
+            @foreach ($presets as $label => [$pf, $pt])
+                <a href="{{ route($action, array_merge(request()->except(['export', 'from', 'to']), ['from' => $pf->toDateString(), 'to' => $pt->toDateString()])) }}"
+                   class="border border-border px-2 py-1 font-semibold text-text-muted hover:border-brand-primary hover:text-brand-primary dark:border-white/10">{{ $label }}</a>
+            @endforeach
+        </div>
+    @endif
+
     @if ($statuses)
         <div>
             <x-input-label for="status" :value="__($statusLabel)" />

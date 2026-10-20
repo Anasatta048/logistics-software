@@ -140,7 +140,7 @@ final class ReportController extends Controller
                 'invoice-register',
                 ['Invoice #', 'Company', 'Driver', 'Invoice date', 'Due date', 'Period', 'Billed', 'Paid', 'Balance', 'Status', 'Days overdue'],
                 $report['rows']->map(fn ($row): array => [
-                    $row->invoice->invoice_number,
+                    $row->invoice->label(),
                     $row->invoice->company?->name,
                     $row->invoice->driver?->name ?? $row->invoice->driver_name,
                     $row->invoice->invoice_date->toDateString(),
@@ -199,7 +199,7 @@ final class ReportController extends Controller
                     $payment->id,
                     $payment->payment_date->toDateString(),
                     $payment->company?->name,
-                    $payment->invoice?->invoice_number,
+                    $payment->invoice?->label(),
                     $payment->payment_method?->label(),
                     $payment->reference,
                     $payment->total_due,

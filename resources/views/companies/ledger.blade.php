@@ -54,7 +54,7 @@
                                     $short = $payment->shortfall();
                                 @endphp
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 whitespace-nowrap">{{ $payment->payment_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">{{ $payment->payment_date->format(df()) }}</td>
                                     <td class="px-4 py-3 text-text-muted">{{ $payment->reference ?: '—' }}</td>
                                     <td class="px-4 py-3 text-right">${{ number_format((float) $payment->total_due, 2) }}</td>
                                     <td class="px-4 py-3 text-right font-medium">${{ number_format((float) $payment->amount_received, 2) }}</td>

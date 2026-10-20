@@ -4,7 +4,7 @@
 // tailwind.config.js's theme.extend.colors — this file is the JS mirror of
 // that config, not a second source of truth.
 export const chartPalette = {
-    brandPrimary: '#E8622C',
+    brandPrimary: (typeof document !== 'undefined' && getComputedStyle(document.documentElement).getPropertyValue('--brand-primary').trim()) || '#E8622C',
     brandNavy: '#1B2A4A',
     brandGold: '#C9972E',
     brandNavyLight: '#3A5A8C',

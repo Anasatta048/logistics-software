@@ -2,6 +2,8 @@
     <x-slot name="header">{{ __('Dashboard') }}</x-slot>
 
     @php
+        $widgets = (array) \App\Support\Settings\TenantSettings::get('dashboard.widgets', []);
+        $w = fn (string $key): bool => in_array($key, $widgets, true);
         $hour = now()->hour;
         $greeting = $hour < 12 ? __('Good morning') : ($hour < 18 ? __('Good afternoon') : __('Good evening'));
         // Company money (margin, settlements) is admin-only; everyone else sees
@@ -56,7 +58,7 @@
         </div>
 
         {{-- Get set up (new workspaces only) --}}
-        @if (! empty($business['onboarding']))
+        @if ($w('onboarding') && ! empty($business['onboarding']))
             @php($ob = $business['onboarding'])
             <section class="form-anim border border-brand-primary/40 bg-brand-primary/5 p-5">
                 <div class="flex flex-wrap items-center gap-3">
@@ -80,7 +82,7 @@
         @endif
 
         {{-- Alerts --}}
-        @if (! empty($business['alerts']))
+        @if ($w('alerts') && ! empty($business['alerts']))
             <div class="form-anim space-y-2">
                 @foreach ($business['alerts'] as $alert)
                     @php($tone = ['danger' => 'border-status-cancelled/40 bg-status-cancelled/5 text-status-cancelled', 'warning' => 'border-warning/40 bg-warning/5 text-warning', 'info' => 'border-brand-navy-light/40 bg-brand-navy-light/5 text-brand-navy-light'][$alert['tone']])
@@ -110,6 +112,7 @@
         </div>
 
         {{-- Needs attention --}}
+        @if ($w('attention'))
         <section class="form-anim form-section">
             <div class="form-section-head">
                 <span class="form-section-icon"><x-icon name="alert-triangle" :size="18" /></span>
@@ -146,12 +149,13 @@
                 </ul>
             @endif
         </section>
+        @endif
 
         {{-- Charts --}}
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            @if ($isAdmin)
+            @if ($isAdmin && $w('revenue_chart'))
             <div class="form-anim lg:col-span-2">
-                <x-chart-card title="Revenue & Margin — last 14 days" period="14d">
+                <x-chart-card :title="'Revenue & Margin — last '.(int) \App\Support\Settings\TenantSettings::get('dashboard.chart_days', 14).' days'">
                     <div class="h-72">
                         <canvas id="revenue-margin-chart"></canvas>
                     </div>
@@ -160,7 +164,8 @@
             </div>
             @endif
 
-            <div class="form-anim {{ $isAdmin ? '' : 'lg:col-span-3' }}">
+            @if ($w('status_chart'))
+            <div class="form-anim {{ $isAdmin && $w('revenue_chart') ? '' : 'lg:col-span-3' }}">
                 <x-chart-card title="Loads by Status">
                     <div class="h-72">
                         <canvas id="loads-status-chart"></canvas>
@@ -168,21 +173,22 @@
                     <script type="application/json" id="loads-status-data">{!! json_encode($metrics['status_counts']) !!}</script>
                 </x-chart-card>
             </div>
+            @endif
         </div>
 
-        @if ($fin = $business['finance'])
-            @php($pkr = fn ($v) => 'Rs '.number_format((float) $v, 0))
+        @if ($w('money') && ($fin = $business['finance']))
+            @php($pkr = fn ($v) => cur_local().' '.number_format((float) $v, 0))
             <section class="form-anim">
                 <h2 class="mb-3 text-sm font-semibold uppercase tracking-wider text-text-muted">{{ __('Money') }} · {{ $fin['month'] }}</h2>
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     @foreach (array_filter([
-                        ['Fees earned', '$'.number_format($fin['fees'], 2), 'On paid loads this month · gross $'.number_format($fin['gross'], 0), 'wallet', 'bg-status-paid/10 text-status-paid'],
+                        ['Fees earned', cur_foreign().number_format($fin['fees'], 2), 'On paid loads this month · gross $'.number_format($fin['gross'], 0), 'wallet', 'bg-status-paid/10 text-status-paid'],
                         $fin['cash'] !== null ? ['Money in accounts', $pkr($fin['cash']['total']), 'Cash and banks right now', 'layers', 'bg-brand-navy/10 text-brand-navy dark:bg-white/10 dark:text-white'] : null,
                         ['Converted to PKR', $pkr($fin['converted_pkr']), 'Reached your accounts this month', 'repeat', 'bg-brand-primary/10 text-brand-primary'],
                         $fin['expenses'] !== null ? ['Spent this month', $pkr($fin['expenses']), $fin['expenses_change'] === null ? 'Office expenses' : ($fin['expenses_change'] >= 0 ? '▲ ' : '▼ ').abs($fin['expenses_change']).'% vs last month', 'receipt', 'bg-status-cancelled/10 text-status-cancelled'] : null,
-                        ['USD waiting to convert', '$'.number_format($fin['unconverted_usd'], 2), 'Received, not yet in PKR', 'dollar', 'bg-brand-gold/15 text-brand-gold'],
-                        ['Owed to dispatchers', '$'.number_format($fin['commission_payable_usd'], 2), 'Commission earned, unpaid', 'percent', 'bg-brand-gold/15 text-brand-gold'],
-                        ['Clients still owe', '$'.number_format($metrics['pending_settlement'], 2), $fin['overdue']['count'].' overdue invoice(s)', 'file-text', 'bg-brand-gold/15 text-brand-gold'],
+                        ['USD waiting to convert', cur_foreign().number_format($fin['unconverted_usd'], 2), 'Received, not yet in PKR', 'dollar', 'bg-brand-gold/15 text-brand-gold'],
+                        ['Owed to dispatchers', cur_foreign().number_format($fin['commission_payable_usd'], 2), 'Commission earned, unpaid', 'percent', 'bg-brand-gold/15 text-brand-gold'],
+                        ['Clients still owe', cur_foreign().number_format($metrics['pending_settlement'], 2), $fin['overdue']['count'].' overdue invoice(s)', 'file-text', 'bg-brand-gold/15 text-brand-gold'],
                         $fin['net_pkr'] !== null ? ['Net this month', $pkr($fin['net_pkr']), 'Converted − expenses − payouts', 'chart-bar', $fin['net_pkr'] >= 0 ? 'bg-status-paid/10 text-status-paid' : 'bg-status-cancelled/10 text-status-cancelled'] : null,
                     ]) as [$label, $value, $hint, $icon, $tone])
                         <div class="dash-kpi border border-border bg-surface p-5 dark:border-white/10 dark:bg-surface-dark">
@@ -199,7 +205,7 @@
                 </div>
             </section>
 
-            @if (! empty($fin['months']) || ! empty($fin['top_categories']))
+            @if ($w('trend') && (! empty($fin['months']) || ! empty($fin['top_categories'])))
                 <div class="form-anim grid grid-cols-1 gap-6 lg:grid-cols-3">
                     @if (! empty($fin['months']))
                         @php($peak = max(1, collect($fin['months'])->max(fn ($m) => max($m['income'], $m['spent']))))
@@ -210,7 +216,7 @@
                             </div>
                             <div class="mt-4 flex h-48 items-end gap-3">
                                 @foreach ($fin['months'] as $m)
-                                    <div class="flex min-w-0 flex-1 flex-col items-center gap-1" title="{{ $m['label'] }}: in Rs {{ number_format($m['income']) }} / out Rs {{ number_format($m['spent']) }}">
+                                    <div class="flex min-w-0 flex-1 flex-col items-center gap-1" title="{{ $m['label'] }}: in {{ cur_local() }} {{ number_format($m['income']) }} / out {{ cur_local() }} {{ number_format($m['spent']) }}">
                                         <div class="flex h-40 w-full items-end justify-center gap-1">
                                             <div class="w-1/2 max-w-6 bg-status-paid" style="height: {{ max(1, $m['income'] / $peak * 100) }}%"></div>
                                             <div class="w-1/2 max-w-6 bg-status-cancelled" style="height: {{ max(1, $m['spent'] / $peak * 100) }}%"></div>
@@ -240,7 +246,7 @@
         @endif
 
         {{-- Plan usage --}}
-        @if (! empty($business['usage']))
+        @if ($w('plan') && ! empty($business['usage']))
             <section class="form-anim border border-border bg-surface p-5 dark:border-white/10 dark:bg-surface-dark">
                 <h3 class="font-bold text-text-primary dark:text-white">{{ __('Your plan') }} · {{ app(\App\Support\Tenancy\TenantContext::class)->tenant()?->plan?->name }}</h3>
                 <div class="mt-3 grid gap-4 sm:grid-cols-3">

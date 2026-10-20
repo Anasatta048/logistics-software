@@ -64,7 +64,7 @@
                                         <td class="px-4 py-3 text-right">${{ number_format((float) $row->commission_total, 2) }}</td>
                                     @endif
                                     <td class="px-4 py-3 whitespace-nowrap text-xs text-text-muted">
-                                        {{ $row->last_pickup ? \App\Support\Timezones::toUs(\Illuminate\Support\Carbon::parse($row->last_pickup, 'UTC'))->format('M j, Y') : '—' }}
+                                        {{ $row->last_pickup ? \App\Support\Timezones::toUs(\Illuminate\Support\Carbon::parse($row->last_pickup, 'UTC'))->format(df()) : '—' }}
                                     </td>
                                 </tr>
                             @endforeach

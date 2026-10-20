@@ -10,13 +10,13 @@
                 <x-field name="from_account_id" :label="__('From account')" icon="wallet" required>
                     <select id="from_account_id" name="from_account_id" required>
                         <option value="">{{ __('Select…') }}</option>
-                        @foreach ($accounts as $a)<option value="{{ $a->id }}" @selected(old('from_account_id') == $a->id)>{{ $a->name }} — Rs {{ number_format((float) $a->current_balance, 2) }}</option>@endforeach
+                        @foreach ($accounts as $a)<option value="{{ $a->id }}" @selected(old('from_account_id') == $a->id)>{{ $a->name }} — {{ cur_local() }} {{ number_format((float) $a->current_balance, 2) }}</option>@endforeach
                     </select>
                 </x-field>
                 <x-field name="to_account_id" :label="__('To account')" icon="wallet" required>
                     <select id="to_account_id" name="to_account_id" required>
                         <option value="">{{ __('Select…') }}</option>
-                        @foreach ($accounts as $a)<option value="{{ $a->id }}" @selected(old('to_account_id') == $a->id)>{{ $a->name }} — Rs {{ number_format((float) $a->current_balance, 2) }}</option>@endforeach
+                        @foreach ($accounts as $a)<option value="{{ $a->id }}" @selected(old('to_account_id') == $a->id)>{{ $a->name }} — {{ cur_local() }} {{ number_format((float) $a->current_balance, 2) }}</option>@endforeach
                     </select>
                 </x-field>
             </x-form-section>

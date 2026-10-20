@@ -43,13 +43,13 @@
                             @foreach ($rows as $row)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
                                     <td class="px-4 py-3 font-medium text-text-primary dark:text-white">
-                                        <a href="{{ route('invoices.show', $row->invoice) }}" class="hover:underline">#{{ $row->invoice->invoice_number }}</a>
+                                        <a href="{{ route('invoices.show', $row->invoice) }}" class="hover:underline">#{{ $row->invoice->label() }}</a>
                                     </td>
                                     <td class="px-4 py-3">{{ $row->invoice->company?->name ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ $row->invoice->driver?->name ?? $row->invoice->driver_name }}</td>
-                                    <td class="px-4 py-3 whitespace-nowrap">{{ $row->invoice->invoice_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">{{ $row->invoice->invoice_date->format(df()) }}</td>
                                     <td class="px-4 py-3 whitespace-nowrap {{ $row->overdue ? 'text-status-cancelled font-medium' : '' }}">
-                                        {{ $row->invoice->due_date->format('M j, Y') }}
+                                        {{ $row->invoice->due_date->format(df()) }}
                                         @if ($row->overdue)
                                             <span class="block text-xs">{{ $row->days_overdue }} {{ __('days late') }}</span>
                                         @endif

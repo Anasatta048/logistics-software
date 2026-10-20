@@ -9,6 +9,8 @@ use App\Models\JournalVoucher;
 use App\Models\Load;
 use App\Models\User;
 use App\Services\Support\AttachmentOptimizer;
+use App\Services\Support\NumberSequence;
+use App\Support\Settings\TenantSettings;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -29,10 +31,7 @@ final class JournalVoucherService
                 'status' => JournalVoucherStatus::Pending,
             ]);
 
-            // Same trick as Load's reference_number: stamped from the primary
-            // key in a second write so no sequence table is needed for one
-            // number a day.
-            $jv->update(['jv_number' => $this->numberFor($jv->id)]);
+            $jv->update(['jv_number' => $this->nextNumber()]);
 
             return $jv;
         });
@@ -151,8 +150,12 @@ final class JournalVoucherService
         return $data;
     }
 
-    private function numberFor(int $id): string
+    private function nextNumber(): string
     {
-        return 'JV-'.str_pad((string) $id, 6, '0', STR_PAD_LEFT);
+        return NumberSequence::format(
+            (string) TenantSettings::get('numbering.jv_prefix', 'JV'),
+            NumberSequence::next('journal_voucher'),
+            (int) TenantSettings::get('numbering.jv_padding', 6),
+        );
     }
 }

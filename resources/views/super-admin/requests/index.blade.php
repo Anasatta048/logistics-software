@@ -42,7 +42,7 @@
                                     <td class="px-4 py-3">{{ $req->contact_name }}<br><span class="text-xs text-text-muted">{{ $req->email }}</span></td>
                                     <td class="px-4 py-3">{{ $req->fleet_size ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ $req->plan?->name ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-text-muted">{{ $req->created_at->format('d M Y') }}</td>
+                                    <td class="px-4 py-3 text-text-muted">{{ $req->created_at->format(df()) }}</td>
                                     <td class="px-4 py-3"><span class="px-2 py-0.5 text-[11px] font-bold {{ $req->status->color() }}">{{ $req->status->label() }}</span></td>
                                     <td class="px-4 py-3 text-right"><a href="{{ route('super-admin.requests.show', $req) }}" class="text-text-muted hover:text-brand-primary" title="{{ __('Open') }}"><x-icon name="eye" :size="16" /></a></td>
                                 </tr>

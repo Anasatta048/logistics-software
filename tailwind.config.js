@@ -18,8 +18,8 @@ export default {
             },
             colors: {
                 // 1.1 Brand
-                'brand-primary': '#E8622C',
-                'brand-navy': '#1B2A4A',
+                'brand-primary': 'rgb(var(--brand-primary-rgb) / <alpha-value>)',
+                'brand-navy': 'rgb(var(--brand-navy-rgb) / <alpha-value>)',
                 'brand-gold': '#C9972E',
                 'brand-navy-light': '#3A5A8C',
                 // 1.2 Semantic / status

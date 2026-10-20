@@ -26,7 +26,7 @@
         @if ($req->tenant)
             <x-alert variant="success">
                 {{ __('Approved — workspace') }} <a class="font-bold underline" href="{{ route('super-admin.tenants.show', $req->tenant) }}">{{ $req->tenant->name }}</a>
-                {{ __('was created') }}@if ($req->reviewed_at) {{ __('on :d', ['d' => $req->reviewed_at->format('d M Y')]) }}@endif.
+                {{ __('was created') }}@if ($req->reviewed_at) {{ __('on :d', ['d' => $req->reviewed_at->format(df())]) }}@endif.
             </x-alert>
         @else
             <x-form-section :title="__('Approve & create workspace')" icon="check-circle" :description="__('Creates the company, its first administrator and a set-password email.')">

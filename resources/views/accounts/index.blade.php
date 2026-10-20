@@ -26,9 +26,9 @@
         @endif
 
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-3">
-            <x-card class="px-4 py-3"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Cash in hand') }}</div><div class="text-xl font-bold text-text-primary dark:text-white">Rs {{ number_format($cash, 2) }}</div></x-card>
-            <x-card class="px-4 py-3"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('In banks') }}</div><div class="text-xl font-bold text-text-primary dark:text-white">Rs {{ number_format($bank, 2) }}</div></x-card>
-            <x-card class="col-span-2 px-4 py-3 lg:col-span-1"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Total money') }}</div><div class="text-xl font-bold text-brand-primary">Rs {{ number_format($cash + $bank, 2) }}</div></x-card>
+            <x-card class="px-4 py-3"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Cash in hand') }}</div><div class="text-xl font-bold text-text-primary dark:text-white">{{ cur_local() }} {{ number_format($cash, 2) }}</div></x-card>
+            <x-card class="px-4 py-3"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('In banks') }}</div><div class="text-xl font-bold text-text-primary dark:text-white">{{ cur_local() }} {{ number_format($bank, 2) }}</div></x-card>
+            <x-card class="col-span-2 px-4 py-3 lg:col-span-1"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Total money') }}</div><div class="text-xl font-bold text-brand-primary">{{ cur_local() }} {{ number_format($cash + $bank, 2) }}</div></x-card>
         </div>
 
         <x-card :padded="false">

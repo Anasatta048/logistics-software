@@ -135,7 +135,7 @@ final class ReportExport
             'headings' => $headings,
             'rows' => $rows,
             'summary' => $summary,
-            'logo' => null,
+            'logo' => \App\Support\BrandTheme::logoDataUri(),
         ])->setPaper('a4', count($headings) > 7 ? 'landscape' : 'portrait');
 
         return $pdf->download($file.'.pdf');

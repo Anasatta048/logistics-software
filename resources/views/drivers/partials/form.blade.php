@@ -55,4 +55,6 @@
     </x-field>
 </x-form-section>
 
+<x-custom-fields entity="driver" :model="$driver" />
+
 <x-form-actions :cancel="route('drivers.index')" :submit="__('Save driver')" />
