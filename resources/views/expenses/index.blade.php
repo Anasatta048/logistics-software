@@ -1,15 +1,17 @@
 <x-app-layout>
     <x-slot name="header">{{ __('Expenses') }}</x-slot>
 
+    @php($total = array_sum($byCategory))
     <div class="space-y-6">
         <div class="form-page-head !mb-0 flex-wrap">
             <span class="form-page-icon"><x-icon name="receipt" :size="26" /></span>
             <div class="min-w-0 flex-1">
                 <h1 class="text-xl font-extrabold tracking-tight text-text-primary dark:text-white">{{ __('Expenses') }}</h1>
-                <p class="text-sm text-text-muted">
-                    {{ __('Company running costs, in the account currency the money actually left.') }}
-                </p>
+                <p class="text-sm text-text-muted">{{ __('Everything the company spends, filed by category and tied to the account the money left.') }}</p>
             </div>
+            @can('reports.expenses')
+                <a href="{{ route('reports.expenses') }}" class="btn-ghost"><x-icon name="chart-bar" :size="16" /> {{ __('Expense report') }}</a>
+            @endcan
             @can('create', App\Models\Expense::class)
                 <x-button variant="primary" as="a" href="{{ route('expenses.create') }}">
                     <x-icon name="plus" :size="16" /> {{ __('Add Expense') }}
@@ -21,14 +23,28 @@
             <x-alert variant="success">{{ session('success') }}</x-alert>
         @endif
 
+        <form method="GET" class="grid gap-3 border border-border bg-surface p-4 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_auto] dark:border-white/10 dark:bg-surface-dark">
+            <input type="search" name="q" value="{{ request('q') }}" placeholder="{{ __('Search payee, reference, notes') }}" class="border-border text-sm focus:border-brand-primary focus:ring-brand-primary">
+            <select name="category" class="border-border text-sm focus:border-brand-primary focus:ring-brand-primary">
+                <option value="">{{ __('All categories') }}</option>
+                @foreach ($categories as $category)
+                    <option value="{{ $category->id }}" @selected((string) request('category') === (string) $category->id)>{{ $category->name }}</option>
+                @endforeach
+            </select>
+            <input type="date" name="from" value="{{ request('from') }}" class="border-border text-sm focus:border-brand-primary focus:ring-brand-primary" title="{{ __('From') }}">
+            <input type="date" name="to" value="{{ request('to') }}" class="border-border text-sm focus:border-brand-primary focus:ring-brand-primary" title="{{ __('To') }}">
+            <button class="btn-primary"><x-icon name="filter" :size="14" /> {{ __('Filter') }}</button>
+        </form>
+
         <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            @foreach ($categories as $category)
-                @continue(($byCategory[$category->value] ?? 0.0) == 0.0)
+            <x-card class="px-4 py-3">
+                <div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Total shown') }}</div>
+                <div class="text-xl font-extrabold text-text-primary dark:text-white">Rs {{ number_format($total, 2) }}</div>
+            </x-card>
+            @foreach ($categories->filter(fn ($c) => ($byCategory[$c->id] ?? 0) > 0)->sortByDesc(fn ($c) => $byCategory[$c->id])->take(3) as $category)
                 <x-card class="px-4 py-3">
-                    <div class="text-xs uppercase tracking-wider text-text-muted">{{ $category->label() }}</div>
-                    <div class="text-xl font-semibold text-text-primary dark:text-white">
-                        ${{ number_format((float) $byCategory[$category->value], 2) }}
-                    </div>
+                    <div class="truncate text-xs uppercase tracking-wider text-text-muted">{{ $category->name }}</div>
+                    <div class="text-xl font-semibold text-text-primary dark:text-white">Rs {{ number_format($byCategory[$category->id], 2) }}</div>
                 </x-card>
             @endforeach
         </div>
@@ -49,10 +65,10 @@
                             <tr>
                                 <th data-filter="date" class="px-4 py-3">Date</th>
                                 <th data-filter="select" class="px-4 py-3">Category</th>
+                                <th class="px-4 py-3">Paid to</th>
                                 <th class="px-4 py-3 text-right">Amount</th>
+                                <th data-filter="select" class="px-4 py-3">Paid from</th>
                                 <th data-filter="select" class="px-4 py-3">Method</th>
-                                <th data-filter="select" class="px-4 py-3">Entered By</th>
-                                <th class="px-4 py-3">Notes</th>
                                 <th class="px-4 py-3">Receipt</th>
                                 <th class="px-4 py-3 text-right">Actions</th>
                             </tr>
@@ -60,36 +76,27 @@
                         <tbody class="divide-y divide-border/60 dark:divide-white/5">
                             @foreach ($expenses as $expense)
                                 <tr class="hover:bg-bg/60 dark:hover:bg-white/5">
-                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $expense->expense_date->toDateString() }}">
-                                        {{ $expense->expense_date->format('M j, Y') }}
-                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap" data-date="{{ $expense->expense_date->toDateString() }}">{{ $expense->expense_date->format('M j, Y') }}</td>
+                                    <td class="px-4 py-3"><span class="bg-bg px-2 py-0.5 text-xs font-semibold text-text-primary dark:bg-white/10 dark:text-white">{{ $expense->category?->name ?? '—' }}</span></td>
                                     <td class="px-4 py-3">
-                                        <x-status-badge :status="$expense->category" />
+                                        <span class="text-text-primary dark:text-white">{{ $expense->payee ?: '—' }}</span>
+                                        @if ($expense->reference)<span class="block text-xs text-text-muted">#{{ $expense->reference }}</span>@endif
+                                        @if ($expense->notes)<span class="block max-w-xs truncate text-xs text-text-muted" title="{{ $expense->notes }}">{{ $expense->notes }}</span>@endif
                                     </td>
-                                    <td class="px-4 py-3 text-right font-medium text-text-primary dark:text-white">
-                                        ${{ number_format((float) $expense->amount, 2) }}
-                                    </td>
+                                    <td class="px-4 py-3 text-right font-medium text-text-primary dark:text-white">Rs {{ number_format((float) $expense->amount, 2) }}</td>
+                                    <td class="px-4 py-3">{{ $expense->account?->name ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ $expense->payment_method?->label() ?? '—' }}</td>
-                                    <td class="px-4 py-3">{{ $expense->enteredByUser?->name ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-text-muted">{{ $expense->notes ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-text-muted">
-                                        {{ $expense->attachment_path ? __('Attached') : '—' }}
-                                    </td>
+                                    <td class="px-4 py-3 text-text-muted">{{ $expense->attachment_path ? __('Attached') : '—' }}</td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-3">
                                             @can('update', $expense)
-                                                <a href="{{ route('expenses.edit', $expense) }}" class="text-text-muted hover:text-brand-primary" title="{{ __('Edit') }}">
-                                                    <x-icon name="pencil" :size="16" />
-                                                </a>
+                                                <a href="{{ route('expenses.edit', $expense) }}" class="text-text-muted hover:text-brand-primary" title="{{ __('Edit') }}"><x-icon name="pencil" :size="16" /></a>
                                             @endcan
                                             @can('delete', $expense)
                                                 <form method="POST" action="{{ route('expenses.destroy', $expense) }}" class="inline">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-text-muted hover:text-status-cancelled" title="{{ __('Remove') }}"
-                                                        data-confirm="Remove this expense?">
-                                                        <x-icon name="trash" :size="16" />
-                                                    </button>
+                                                    <button type="submit" class="text-text-muted hover:text-status-cancelled" title="{{ __('Remove') }}" data-confirm="Remove this expense?"><x-icon name="trash" :size="16" /></button>
                                                 </form>
                                             @endcan
                                         </div>

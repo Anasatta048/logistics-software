@@ -204,6 +204,7 @@ final class CompanyPaymentService
                         $payment->period_from->format('M j').' - '.$payment->period_to->format('M j, Y'),
                     ),
                     $actor,
+                    Carbon::parse($data['conversion_date'] ?? $payment->payment_date)->toDateString(),
                 );
             }
 

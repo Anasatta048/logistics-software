@@ -21,7 +21,7 @@
                 @endforeach
                 <div class="my-2 border-t border-border dark:border-white/10"></div>
                 @foreach ([
-                    ['expense-categories.index', __('Expense categories'), 'tag', 'expenses.view'],
+                    ['expense-categories.index', __('Expense categories'), 'tag', 'expense-categories.view'],
                     ['equipment-types.index', __('Equipment types'), 'truck', 'equipment-types.view'],
                     ['settings.timezones.edit', __('Timezones'), 'clock', 'settings.manage'],
                     ['roles.index', __('Roles & rights'), 'key', 'roles.view'],

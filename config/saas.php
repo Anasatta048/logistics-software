@@ -9,4 +9,11 @@ return [
 
     // Equipment types every new workspace starts with.
     'starter_equipment_types' => ['Dry Van', 'Reefer', 'Flatbed', 'Power Only', 'Box Truck'],
+
+    // Expense categories every new workspace starts with (editable afterwards).
+    'starter_expense_categories' => [
+        'Salaries', 'Rent', 'Electricity & utilities', 'Internet & phone', 'Load board subscriptions',
+        'Software & subscriptions', 'Marketing & ads', 'Office supplies', 'Repairs & maintenance',
+        'Bank & transfer charges', 'Taxes & fees', 'Travel & transport', 'Other',
+    ],
 ];

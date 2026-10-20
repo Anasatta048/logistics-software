@@ -8,7 +8,6 @@ use App\Enums\AttachmentType;
 use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Enums\DriverStatus;
-use App\Enums\ExpenseCategory;
 use App\Enums\LoadStatus;
 use App\Enums\TaxType;
 use App\Enums\TenantStatus;
@@ -20,6 +19,7 @@ use App\Models\Company;
 use App\Models\Driver;
 use App\Models\EquipmentType;
 use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\Load;
 use App\Models\LoadAttachment;
 use App\Models\Plan;
@@ -467,19 +467,22 @@ class DemoDataSeeder extends Seeder
     private function expenses(User $accountant, array $accounts): void
     {
         $service = app(ExpenseService::class);
-        $notes = [
-            'fuel' => 'Fuel card top-up', 'tolls' => 'Toll tags monthly', 'repairs_maintenance' => 'Laptop repair',
-            'office' => 'Office rent', 'software_subscriptions' => 'Load board subscription', 'salaries' => 'Staff salaries', 'other' => 'Misc',
-        ];
+        ExpenseCategory::seedStarter();
+        $categories = ExpenseCategory::query()->ordered()->get();
+        $payees = ['Salaries' => 'Office staff', 'Rent' => 'Landlord', 'Electricity & utilities' => 'K-Electric', 'Internet & phone' => 'PTCL',
+            'Load board subscriptions' => 'DAT Solutions', 'Software & subscriptions' => 'Google Workspace', 'Marketing & ads' => 'Meta Ads'];
 
-        foreach (ExpenseCategory::cases() as $i => $category) {
+        foreach ($categories as $i => $category) {
             foreach ([0, 1] as $k) {
                 $service->create([
-                    'category' => $category,
+                    'expense_category_id' => $category->id,
                     'expense_date' => now()->subDays($i * 3 + $k * 9 + 1)->toDateString(),
-                    'amount' => mt_rand(20, 900) * ($category === ExpenseCategory::Salaries ? 100 : 10),
+                    'amount' => mt_rand(20, 900) * ($category->name === 'Salaries' ? 100 : 10),
+                    'payee' => $payees[$category->name] ?? null,
+                    'reference' => $k ? null : 'INV-'.(1000 + $i),
+                    'payment_method' => ['cash', 'bank_transfer', 'online'][($i + $k) % 3],
                     'account_id' => $accounts[($i + $k) % 3]->id,
-                    'notes' => $notes[$category->value].($k ? ' (previous month)' : ''),
+                    'notes' => $category->name.($k ? ' (previous month)' : ''),
                 ], $accountant);
             }
         }
@@ -487,7 +490,7 @@ class DemoDataSeeder extends Seeder
         // Exercise the reversal paths: one edited (amount + account), one deleted.
         $edited = Expense::query()->orderBy('id')->first();
         $service->update($edited, [
-            'category' => $edited->category, 'expense_date' => $edited->expense_date->toDateString(),
+            'expense_category_id' => $edited->expense_category_id, 'payment_method' => $edited->payment_method?->value ?? 'cash', 'expense_date' => $edited->expense_date->toDateString(),
             'amount' => (float) $edited->amount + 500, 'account_id' => $accounts[1]->id, 'notes' => 'Corrected amount',
         ], $accountant);
 

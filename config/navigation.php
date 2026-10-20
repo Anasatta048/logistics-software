@@ -88,6 +88,10 @@ return [
                     ['label' => 'All accounts', 'route' => 'accounts.index'],
                     ['label' => 'Add account', 'route' => 'accounts.create', 'gate' => ['create', Account::class]],
                 ]],
+                ['label' => 'Transfers', 'route' => 'account-transfers.index', 'icon' => 'repeat', 'gate' => 'accounts.view', 'children' => [
+                    ['label' => 'All transfers', 'route' => 'account-transfers.index'],
+                    ['label' => 'New transfer', 'route' => 'account-transfers.create', 'gate' => 'accounts.transfer'],
+                ]],
                 ['label' => 'Journal Vouchers', 'route' => 'journal-vouchers.index', 'icon' => 'file-text', 'gate' => ['viewAny', JournalVoucher::class], 'children' => [
                     ['label' => 'All vouchers', 'route' => 'journal-vouchers.index'],
                     ['label' => 'Add voucher', 'route' => 'journal-vouchers.create', 'gate' => ['create', JournalVoucher::class]],

@@ -26,6 +26,7 @@ class AccountTransaction extends Model
         'type',
         'amount',
         'running_balance',
+        'occurred_on',
         'source_type',
         'source_id',
         'description',
@@ -42,6 +43,7 @@ class AccountTransaction extends Model
             'source_type' => TransactionSource::class,
             'amount' => 'decimal:2',
             'running_balance' => 'decimal:2',
+            'occurred_on' => 'date',
         ];
     }
 

@@ -31,6 +31,8 @@ final class ReportFilterRequest extends FormRequest
             'driver_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('drivers', 'id')],
             'company_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('companies', 'id')],
             'account_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')],
+            'expense_category_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('expense_categories', 'id')],
+            'section' => ['nullable', 'in:category,month,account,method,payee'],
             'status' => ['nullable', 'string'],
             'export' => ['nullable', 'in:csv,pdf'],
         ];

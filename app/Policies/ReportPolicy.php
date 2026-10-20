@@ -64,6 +64,12 @@ final class ReportPolicy
         return $user->can('reports.view') && $user->can('expenses.view');
     }
 
+    /** Where money came from and went, per account. */
+    public function fundsFlow(User $user): bool
+    {
+        return $user->can('reports.view') && $user->can('accounts.view');
+    }
+
     public function accountStatement(User $user): bool
     {
         return $user->can('reports.view') && $user->can('accounts.view');

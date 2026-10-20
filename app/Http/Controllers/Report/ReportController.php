@@ -11,6 +11,7 @@ use App\Models\Broker;
 use App\Models\Company;
 use App\Models\Driver;
 use App\Models\User;
+use App\Services\Account\MoneyFlowService;
 use App\Services\Report\ReportService;
 use App\Support\ReportExport;
 use App\Support\Timezones;
@@ -253,16 +254,55 @@ final class ReportController extends Controller
         $report = $this->reports->expenses($request->validated(), $request->user());
 
         if ($request->wantsExport()) {
+            $section = (string) $request->validated('section', 'category');
+            $titles = ['category' => 'Category', 'month' => 'Month', 'account' => 'Paid from', 'method' => 'Method', 'payee' => 'Paid to'];
+            $rows = $section === 'category' ? $report['rows'] : $report[['month' => 'months', 'account' => 'accounts', 'method' => 'methods', 'payee' => 'payees'][$section]];
+
             return $this->export(
                 $request,
-                'Expenses by category',
-                'expenses-by-category',
-                ['Category', 'Entries', 'Total', 'Share %'],
-                collect($report['rows'])->map(fn (array $row): array => [$row['label'], $row['count'], $row['total'], $row['share']]),
+                'Expenses by '.strtolower($titles[$section]),
+                'expenses-by-'.$section,
+                [$titles[$section], 'Entries', 'Total', 'Share %'],
+                collect($rows)->map(fn (array $row): array => [$row['label'], $row['count'], $row['total'], $row['share']]),
+                ['Total spent' => $report['total'], 'Entries' => $report['count']],
             );
         }
 
-        return view('reports.expenses', $report);
+        return view('reports.expenses', [
+            ...$report,
+            'categories' => \App\Models\ExpenseCategory::query()->ordered()->get(['id', 'name']),
+            'accounts' => Account::query()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    public function fundsFlow(ReportFilterRequest $request, MoneyFlowService $flow): View|\Symfony\Component\HttpFoundation\Response
+    {
+        $filters = $request->validated();
+        $filters['from'] ??= now()->startOfMonth()->toDateString();
+        $filters['to'] ??= now()->toDateString();
+
+        $report = $flow->fundsFlow($filters);
+
+        if ($request->wantsExport()) {
+            return $this->export(
+                $request,
+                'Funds flow',
+                'funds-flow',
+                ['Date', 'Account', 'Direction', 'Amount', 'What', 'Party', 'Description'],
+                $report['rows']->map(fn ($t): array => [
+                    $t->occurred_on?->toDateString(), $t->account?->name, $t->type->sign() > 0 ? 'In' : 'Out',
+                    $t->amount, $t->flow['title'], $t->flow['party'], $t->description,
+                ]),
+                ['Opening' => $report['totals']['opening'], 'Money in' => $report['totals']['in'], 'Money out' => $report['totals']['out'], 'Closing' => $report['totals']['closing']],
+            );
+        }
+
+        return view('reports.funds-flow', [
+            ...$report,
+            'from' => $filters['from'],
+            'to' => $filters['to'],
+            'accountOptions' => Account::query()->orderBy('name')->get(['id', 'name']),
+        ]);
     }
 
     public function accountStatement(ReportFilterRequest $request): View|\Symfony\Component\HttpFoundation\Response|RedirectResponse

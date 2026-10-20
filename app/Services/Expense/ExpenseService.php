@@ -2,7 +2,6 @@
 
 namespace App\Services\Expense;
 
-use App\Enums\ExpenseCategory;
 use App\Enums\TransactionSource;
 use App\Enums\TransactionType;
 use App\Models\Account;
@@ -46,8 +45,9 @@ final class ExpenseService
                     (float) $expense->amount,
                     TransactionSource::Expense,
                     $expense->id,
-                    "Expense #{$expense->id}: {$expense->category->label()}",
+                    "Expense #{$expense->id}: {$expense->category?->name}",
                     $actor,
+                    $expense->expense_date->toDateString(),
                 );
             }
 
@@ -63,6 +63,7 @@ final class ExpenseService
         return DB::transaction(function () use ($expense, $data, $actor) {
             $originalAccountId = $expense->account_id;
             $originalAmount = (float) $expense->amount;
+            $originalDate = $expense->expense_date->toDateString();
 
             // entered_by stays as posted: editing the amount is not re-entering it.
             $expense->update($this->withStoredFile($data, $expense->attachment_path));
@@ -71,7 +72,7 @@ final class ExpenseService
             // Reverse the old posting and post the new one whenever the amount
             // or account changed — simplest correct approach, and it keeps
             // recordTransaction() the only place a balance ever moves.
-            if ($originalAccountId !== $expense->account_id || $originalAmount !== (float) $expense->amount) {
+            if ($originalAccountId !== $expense->account_id || $originalAmount !== (float) $expense->amount || $originalDate !== $expense->expense_date->toDateString()) {
                 // An expense with no account never touched a balance, so there
                 // is nothing to reverse (or to post) on that side.
                 if ($originalAccountId !== null) {
@@ -83,6 +84,7 @@ final class ExpenseService
                         $expense->id,
                         "Reversal of expense #{$expense->id} (edited)",
                         $actor,
+                        $originalDate,
                     );
                 }
 
@@ -93,8 +95,9 @@ final class ExpenseService
                         (float) $expense->amount,
                         TransactionSource::Expense,
                         $expense->id,
-                        "Expense #{$expense->id}: {$expense->category->label()} (edited)",
+                        "Expense #{$expense->id}: {$expense->category?->name} (edited)",
                         $actor,
+                        $expense->expense_date->toDateString(),
                     );
                 }
             }
@@ -122,6 +125,7 @@ final class ExpenseService
                     $expense->id,
                     "Reversal of deleted expense #{$expense->id}",
                     $actor,
+                    $expense->expense_date->toDateString(),
                 );
             }
 
@@ -143,29 +147,22 @@ final class ExpenseService
     }
 
     /**
-     * Sum per category for the given filter, zero-filled so a report never has
-     * to guess whether a missing category is zero or unqueried.
+     * Sum per category for the given filter. Keyed by category id; categories
+     * with nothing spent are left out (the page lists only what was spent).
      *
      * @param  array<string, mixed>  $filters
-     * @return array<string, float>
+     * @return array<int, float>
      */
     public function totalsByCategory(array $filters): array
     {
-        $sums = $this->query($filters)
-            ->selectRaw('category, COALESCE(SUM(amount), 0) AS total')
-            ->groupBy('category')
+        return $this->query($filters)
+            ->reorder()
+            ->selectRaw('expense_category_id, COALESCE(SUM(amount), 0) AS total')
+            ->groupBy('expense_category_id')
             ->toBase()
             ->get()
-            ->keyBy('category')
-            ->map(fn (object $row): float => (float) $row->total);
-
-        $totals = [];
-
-        foreach (ExpenseCategory::cases() as $category) {
-            $totals[$category->value] = (float) $sums->get($category->value, 0.0);
-        }
-
-        return $totals;
+            ->mapWithKeys(fn (object $row): array => [(int) $row->expense_category_id => (float) $row->total])
+            ->all();
     }
 
     /**
@@ -175,16 +172,17 @@ final class ExpenseService
     private function query(array $filters): Builder
     {
         $term = trim((string) ($filters['q'] ?? ''));
-        $category = ($filters['category'] ?? '') !== ''
-            ? ExpenseCategory::tryFrom((string) $filters['category'])
-            : null;
+        $category = (int) ($filters['category'] ?? 0);
         $from = $this->boundary($filters['from'] ?? null);
         $to = $this->boundary($filters['to'] ?? null);
 
         return Expense::query()
-            ->with(['enteredByUser:id,name'])
-            ->when($term !== '', fn (Builder $query) => $query->where('notes', 'like', "%{$term}%"))
-            ->when($category, fn (Builder $query) => $query->where('category', $category))
+            ->with(['enteredByUser:id,name', 'category:id,name', 'account:id,name'])
+            ->when($term !== '', fn (Builder $query) => $query->where(fn (Builder $w) => $w
+                ->where('notes', 'like', "%{$term}%")
+                ->orWhere('payee', 'like', "%{$term}%")
+                ->orWhere('reference', 'like', "%{$term}%")))
+            ->when($category > 0, fn (Builder $query) => $query->where('expense_category_id', $category))
             ->when($from, fn (Builder $query) => $query->where('expense_date', '>=', $from->toDateString()))
             ->when($to, fn (Builder $query) => $query->where('expense_date', '<=', $to->toDateString()));
     }

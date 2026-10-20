@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers\Expense;
 
-use App\Enums\ExpenseCategory;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Expense\StoreExpenseRequest;
 use App\Http\Requests\Expense\UpdateExpenseRequest;
 use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Services\Expense\ExpenseService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,14 +25,14 @@ final class ExpenseController extends Controller
         return view('expenses.index', [
             'expenses' => $this->expenses->paginate($filters),
             'byCategory' => $this->expenses->totalsByCategory($filters),
-            'categories' => ExpenseCategory::cases(),
+            'categories' => ExpenseCategory::query()->ordered()->get(),
         ]);
     }
 
     public function create(): View
     {
         return view('expenses.create', [
-            'categories' => ExpenseCategory::cases(),
+            'categories' => ExpenseCategory::query()->active()->ordered()->get(),
             'accounts' => \App\Models\Account::query()->where('status', 'active')->orderBy('name')->get(),
         ]);
     }
@@ -50,7 +50,7 @@ final class ExpenseController extends Controller
     {
         return view('expenses.edit', [
             'expense' => $expense,
-            'categories' => ExpenseCategory::cases(),
+            'categories' => ExpenseCategory::query()->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $expense->expense_category_id))->ordered()->get(),
             'accounts' => \App\Models\Account::query()->where('status', 'active')->orderBy('name')->get(),
         ]);
     }

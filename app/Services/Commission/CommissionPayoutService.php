@@ -87,6 +87,7 @@ final readonly class CommissionPayoutService
                     $payout->id,
                     "Commission payout #{$payout->id} to {$dispatcher->name}: USD ".number_format($usd, 2).' @ '.number_format($rate, 2),
                     $actor,
+                    Carbon::parse($data['paid_at'])->toDateString(),
                 );
             }
 

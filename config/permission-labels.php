@@ -16,6 +16,7 @@ return [
         'company-payments' => ['Payment receipts', 'credit-card', 'Money received from companies'],
         'currency-conversions' => ['Currency conversions', 'repeat', 'USD to PKR conversions'],
         'expenses' => ['Expenses', 'receipt', 'Company costs and spending'],
+        'expense-categories' => ['Expense categories', 'tag', 'The headings expenses are filed under'],
         'accounts' => ['Chart of accounts', 'layers', 'The account list behind the books'],
         'journal-vouchers' => ['Journal vouchers', 'note', 'Manual accounting entries'],
         'commissions' => ['Commissions', 'percent', 'Dispatcher commission payouts'],

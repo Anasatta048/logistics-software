@@ -34,6 +34,7 @@ Route::middleware('auth')->prefix('reports')->name('reports.')->group(function (
 
     // Accounts
     Route::get('/expenses', [ReportController::class, 'expenses'])->name('expenses')->middleware('can:reports.expenses');
+    Route::get('/funds-flow', [ReportController::class, 'fundsFlow'])->name('funds-flow')->middleware('can:reports.fundsFlow');
     Route::get('/account-statement', [ReportController::class, 'accountStatement'])->name('account-statement')->middleware('can:reports.accountStatement');
 
     // Commissions & summary

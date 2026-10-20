@@ -4,6 +4,8 @@
     'drivers' => null,
     'companies' => null,
     'accounts' => null,
+    'accountsAll' => false,
+    'categories' => null,
     'users' => null,
     'statuses' => null,
     'statusLabel' => 'Status',
@@ -92,8 +94,21 @@
         <div>
             <x-input-label for="account_id" :value="__('Account')" />
             <select id="account_id" name="account_id" class="{{ $select }}">
+                @if ($accountsAll)<option value="">{{ __('All') }}</option>@endif
                 @foreach ($accounts as $account)
                     <option value="{{ $account->id }}" @selected((string) ($selectedAccountId ?? request('account_id')) === (string) $account->id)>{{ $account->name }}</option>
+                @endforeach
+            </select>
+        </div>
+    @endif
+
+    @if ($categories)
+        <div>
+            <x-input-label for="expense_category_id" :value="__('Category')" />
+            <select id="expense_category_id" name="expense_category_id" class="{{ $select }}">
+                <option value="">{{ __('All') }}</option>
+                @foreach ($categories as $category)
+                    <option value="{{ $category->id }}" @selected((string) request('expense_category_id') === (string) $category->id)>{{ $category->name }}</option>
                 @endforeach
             </select>
         </div>

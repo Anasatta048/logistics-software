@@ -264,6 +264,22 @@ final class ReportRepository
     /* ──────────────────────── Accounts & expenses ──────────────────────── */
 
     /**
+     * The filtered expense rows every expense breakdown is built on.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Expense>
+     */
+    private function expenseBase(array $filters): Builder
+    {
+        return Expense::query()
+            ->when($filters['user_id'] ?? null, fn (Builder $q, $v) => $q->where('entered_by', $v))
+            ->when($filters['account_id'] ?? null, fn (Builder $q, $v) => $q->where('account_id', $v))
+            ->when($filters['expense_category_id'] ?? null, fn (Builder $q, $v) => $q->where('expense_category_id', $v))
+            ->when($from = $this->day($filters['from'] ?? null), fn (Builder $q) => $q->where('expense_date', '>=', $from))
+            ->when($to = $this->day($filters['to'] ?? null), fn (Builder $q) => $q->where('expense_date', '<=', $to));
+    }
+
+    /**
      * Expense totals grouped by category.
      *
      * @param  array<string, mixed>  $filters
@@ -271,14 +287,39 @@ final class ReportRepository
      */
     public function expensesByCategory(array $filters): BaseCollection
     {
-        return Expense::query()
-            ->when($filters['user_id'] ?? null, fn (Builder $q, $v) => $q->where('entered_by', $v))
-            ->when($from = $this->day($filters['from'] ?? null), fn (Builder $q) => $q->where('expense_date', '>=', $from))
-            ->when($to = $this->day($filters['to'] ?? null), fn (Builder $q) => $q->where('expense_date', '<=', $to))
-            ->groupBy('category')
-            ->selectRaw('category, COALESCE(SUM(amount), 0) as total, COUNT(*) as expenses_count')
-            ->orderBy('category')
+        return $this->expenseBase($filters)
+            ->groupBy('expense_category_id')
+            ->selectRaw('expense_category_id, COALESCE(SUM(amount), 0) as total, COUNT(*) as expenses_count')
             ->toBase()
+            ->get();
+    }
+
+    /**
+     * One breakdown of the filtered expenses: month | account | method | payee.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return BaseCollection<int, stdClass> rows of (label, total, expenses_count)
+     */
+    public function expensesBy(string $dimension, array $filters): BaseCollection
+    {
+        $expr = match ($dimension) {
+            'month' => "DATE_FORMAT(expenses.expense_date, '%Y-%m')",
+            'account' => "COALESCE(accounts.name, 'No account')",
+            'method' => "COALESCE(expenses.payment_method, 'n/a')",
+            'payee' => "COALESCE(NULLIF(expenses.payee, ''), 'Unspecified')",
+        };
+
+        $query = $this->expenseBase($filters)->toBase();
+
+        if ($dimension === 'account') {
+            $query->leftJoin('accounts', 'accounts.id', '=', 'expenses.account_id');
+        }
+
+        return $query
+            ->selectRaw("{$expr} as label, COALESCE(SUM(expenses.amount), 0) as total, COUNT(*) as expenses_count")
+            ->groupBy("label")
+            ->orderByRaw($dimension === 'month' ? 'label' : 'total DESC')
+            ->when($dimension === 'payee', fn ($q) => $q->limit(15))
             ->get();
     }
 

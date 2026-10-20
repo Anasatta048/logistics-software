@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Expense;
 
-use App\Enums\ExpenseCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,9 +21,11 @@ class StoreExpenseRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category' => ['required', Rule::enum(ExpenseCategory::class)],
+            'expense_category_id' => ['required', \App\Support\Tenancy\TenantRule::exists('expense_categories', 'id')->where('is_active', true)],
             'expense_date' => ['required', 'date'],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
+            'payee' => ['nullable', 'string', 'max:120'],
+            'reference' => ['nullable', 'string', 'max:60'],
             'payment_method' => ['required', Rule::enum(\App\Enums\PaymentMethod::class)],
             // Optional: an expense can be recorded without touching any account.
             'account_id' => ['nullable', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')],
@@ -35,6 +36,6 @@ class StoreExpenseRequest extends FormRequest
 
     public function attributes(): array
     {
-        return ['account_id' => 'account'];
+        return ['account_id' => 'account', 'expense_category_id' => 'category'];
     }
 }

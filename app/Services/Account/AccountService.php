@@ -57,8 +57,9 @@ final class AccountService
         ?int $sourceId,
         string $description,
         ?User $actor = null,
+        ?string $occurredOn = null,
     ): AccountTransaction {
-        return DB::transaction(function () use ($account, $type, $amount, $sourceType, $sourceId, $description, $actor) {
+        return DB::transaction(function () use ($account, $type, $amount, $sourceType, $sourceId, $description, $actor, $occurredOn) {
             /** @var Account $locked */
             $locked = Account::query()->whereKey($account->id)->lockForUpdate()->firstOrFail();
 
@@ -72,6 +73,7 @@ final class AccountService
                 'type' => $type,
                 'amount' => $amount,
                 'running_balance' => $newBalance,
+                'occurred_on' => $occurredOn ?? now()->toDateString(),
                 'source_type' => $sourceType,
                 'source_id' => $sourceId,
                 'description' => $description,
@@ -95,6 +97,7 @@ final class AccountService
             $original->source_id,
             $description,
             $actor,
+            $original->occurred_on?->toDateString(),
         );
     }
 

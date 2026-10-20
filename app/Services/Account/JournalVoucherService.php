@@ -58,6 +58,7 @@ final class JournalVoucherService
                 $jv->id,
                 "JV {$jv->jv_number}: {$jv->narration}",
                 $approver,
+                $jv->date?->toDateString(),
             );
 
             $this->accounts->recordTransaction(
@@ -68,6 +69,7 @@ final class JournalVoucherService
                 $jv->id,
                 "JV {$jv->jv_number}: {$jv->narration}",
                 $approver,
+                $jv->date?->toDateString(),
             );
 
             $jv->update([
@@ -96,6 +98,7 @@ final class JournalVoucherService
                     $jv->id,
                     "Void JV {$jv->jv_number}: {$jv->narration}",
                     $actor,
+                    $jv->date?->toDateString(),
                 );
 
                 $this->accounts->recordTransaction(
@@ -106,6 +109,7 @@ final class JournalVoucherService
                     $jv->id,
                     "Void JV {$jv->jv_number}: {$jv->narration}",
                     $actor,
+                    $jv->date?->toDateString(),
                 );
             }
 

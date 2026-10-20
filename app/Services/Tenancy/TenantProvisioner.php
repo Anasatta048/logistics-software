@@ -7,6 +7,7 @@ use App\Enums\TenantStatus;
 use App\Enums\UserStatus;
 use App\Mail\TenantWelcomeMail;
 use App\Models\EquipmentType;
+use App\Models\ExpenseCategory;
 use App\Models\Plan;
 use App\Models\PlatformAuditLog;
 use App\Models\Tenant;
@@ -123,6 +124,8 @@ final class TenantProvisioner
         foreach (config('saas.starter_equipment_types') as $name) {
             EquipmentType::create(['name' => $name]);
         }
+
+        ExpenseCategory::seedStarter();
     }
 
     private function setupUrl(User $admin): string

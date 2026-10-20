@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\ExpenseCategory;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -11,7 +10,7 @@ return new class () extends Migration {
         Schema::create('expenses', function (Blueprint $table) {
             $table->id();
             $table->date('expense_date');
-            $table->string('category')->default(ExpenseCategory::Other->value);
+            $table->string('category')->default('other');
             $table->decimal('amount', 12, 2);
             // Company overhead, or a cost booked against one load — the second
             // case is what feeds the commission margin.

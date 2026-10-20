@@ -12,5 +12,6 @@ enum TransactionSource: string
     case JournalVoucher = 'journal_voucher';
     case CurrencyConversion = 'currency_conversion';
     case Commission = 'commission';
+    case Transfer = 'transfer';
     case Manual = 'manual';
 }

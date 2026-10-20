@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\UserStatus;
 use App\Models\EquipmentType;
+use App\Models\ExpenseCategory;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
@@ -21,11 +22,13 @@ class DatabaseSeeder extends Seeder
         $this->call(SuperAdminSeeder::class);
 
         app(TenantContext::class)->run(DemoDataSeeder::demoTenant(), function (): void {
-            
+
 
             foreach (config('saas.starter_equipment_types') as $name) {
                 EquipmentType::query()->firstOrCreate(['name' => $name]);
             }
+
+            ExpenseCategory::seedStarter();
 
             // Password is the factory default ("password").
             User::query()->firstOrCreate(

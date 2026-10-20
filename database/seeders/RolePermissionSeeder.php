@@ -33,6 +33,7 @@ class RolePermissionSeeder extends Seeder
         'company-payments' => ['view', 'create', 'edit'],
         'invoices' => ['view', 'create', 'delete'],
         'expenses' => ['view', 'create', 'edit', 'delete'],
+        'expense-categories' => ['view', 'create', 'edit', 'delete'],
         'accounts' => ['view', 'create', 'edit', 'delete', 'transfer'],
         'journal-vouchers' => ['view', 'create', 'edit', 'approve', 'void'],
         'reports' => ['view'],
@@ -61,7 +62,7 @@ class RolePermissionSeeder extends Seeder
         'accountant' => [
             'companies.view', 'drivers.view', 'brokers.view', 'loads.view', 'loads.view-all', 'commissions.view',
             'equipment-types.view',
-            'expenses.*', 'accounts.*', 'journal-vouchers.*',
+            'expenses.*', 'expense-categories.*', 'accounts.*', 'journal-vouchers.*',
             'company-payments.*',
             'invoices.*',
             'reports.view',

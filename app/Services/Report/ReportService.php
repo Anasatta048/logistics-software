@@ -3,7 +3,6 @@
 namespace App\Services\Report;
 
 use App\Enums\CompanyPaymentStatus;
-use App\Enums\ExpenseCategory;
 use App\Enums\LoadStatus;
 use App\Models\Invoice;
 use App\Models\User;
@@ -273,25 +272,48 @@ final class ReportService
      */
     public function expenses(array $filters, User $viewer): array
     {
-        $found = $this->repository->expensesByCategory($this->scoped($filters, $viewer))
-            ->keyBy(fn (object $row): string => (string) $row->category);
+        $scoped = $this->scoped($filters, $viewer);
+        $found = $this->repository->expensesByCategory($scoped)->keyBy(fn (object $row): int => (int) $row->expense_category_id);
 
         $total = (float) $found->sum('total');
-        $rows = [];
+        $count = (int) $found->sum('expenses_count');
+        $names = \App\Models\ExpenseCategory::query()->pluck('name', 'id');
 
-        foreach (ExpenseCategory::cases() as $category) {
-            $row = $found->get($category->value);
+        $rows = [];
+        // Every category (an empty one shows as zero), then anything uncategorised.
+        foreach ($names->keys()->concat($found->has(0) ? [0] : []) as $id) {
+            $row = $found->get($id);
             $amount = (float) ($row->total ?? 0);
 
-            $rows[$category->value] = [
-                'label' => $category->label(),
+            $rows[$id] = [
+                'label' => $id === 0 ? 'Uncategorised' : $names[$id],
                 'total' => $amount,
                 'count' => (int) ($row->expenses_count ?? 0),
                 'share' => $total > 0 ? round($amount / $total * 100, 1) : 0.0,
             ];
         }
 
-        return ['rows' => $rows, 'total' => $total, 'count' => (int) $found->sum('expenses_count')];
+        $shape = fn (\Illuminate\Support\Collection $items): array => $items->map(fn (object $r): array => [
+            'label' => (string) $r->label,
+            'total' => (float) $r->total,
+            'count' => (int) $r->expenses_count,
+            'share' => $total > 0 ? round((float) $r->total / $total * 100, 1) : 0.0,
+        ])->values()->all();
+
+        $months = $shape($this->repository->expensesBy('month', $scoped));
+        $monthsWithData = array_filter($months, fn (array $m): bool => $m['total'] > 0);
+
+        return [
+            'rows' => $rows,
+            'total' => $total,
+            'count' => $count,
+            'average' => $count > 0 ? round($total / $count, 2) : 0.0,
+            'monthlyAverage' => $monthsWithData !== [] ? round($total / count($monthsWithData), 2) : 0.0,
+            'months' => $months,
+            'accounts' => $shape($this->repository->expensesBy('account', $scoped)),
+            'methods' => $shape($this->repository->expensesBy('method', $scoped)),
+            'payees' => $shape($this->repository->expensesBy('payee', $scoped)),
+        ];
     }
 
     /**

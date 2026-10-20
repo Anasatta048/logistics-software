@@ -8,6 +8,12 @@
                 <h1 class="text-xl font-extrabold tracking-tight text-text-primary dark:text-white">{{ __('Accounts') }}</h1>
                 <p class="text-sm text-text-muted">{{ __('Cash and bank accounts, with their running balances.') }}</p>
             </div>
+            @can('accounts.transfer')
+                <a href="{{ route('account-transfers.create') }}" class="btn-ghost"><x-icon name="repeat" :size="16" /> {{ __('Transfer') }}</a>
+            @endcan
+            @can('reports.fundsFlow')
+                <a href="{{ route('reports.funds-flow') }}" class="btn-ghost"><x-icon name="chart-bar" :size="16" /> {{ __('Funds flow') }}</a>
+            @endcan
             @can('create', App\Models\Account::class)
                 <x-button variant="primary" as="a" href="{{ route('accounts.create') }}">
                     <x-icon name="plus" :size="16" /> {{ __('Add Account') }}
@@ -18,6 +24,12 @@
         @if (session('success'))
             <x-alert variant="success">{{ session('success') }}</x-alert>
         @endif
+
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-3">
+            <x-card class="px-4 py-3"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Cash in hand') }}</div><div class="text-xl font-bold text-text-primary dark:text-white">Rs {{ number_format($cash, 2) }}</div></x-card>
+            <x-card class="px-4 py-3"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('In banks') }}</div><div class="text-xl font-bold text-text-primary dark:text-white">Rs {{ number_format($bank, 2) }}</div></x-card>
+            <x-card class="col-span-2 px-4 py-3 lg:col-span-1"><div class="text-xs uppercase tracking-wider text-text-muted">{{ __('Total money') }}</div><div class="text-xl font-bold text-brand-primary">Rs {{ number_format($cash + $bank, 2) }}</div></x-card>
+        </div>
 
         <x-card :padded="false">
             @if ($accounts->isEmpty())

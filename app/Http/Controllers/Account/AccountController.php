@@ -9,7 +9,9 @@ use App\Http\Requests\Account\StoreAccountRequest;
 use App\Http\Requests\Account\UpdateAccountRequest;
 use App\Models\Account;
 use App\Services\Account\AccountService;
+use App\Services\Account\MoneyFlowService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 final class AccountController extends Controller
@@ -22,6 +24,8 @@ final class AccountController extends Controller
     {
         return view('accounts.index', [
             'accounts' => Account::query()->orderBy('name')->paginate(500),
+            'cash' => (float) Account::query()->where('status', 'active')->where('type', 'cash')->sum('current_balance'),
+            'bank' => (float) Account::query()->where('status', 'active')->where('type', 'bank')->sum('current_balance'),
         ]);
     }
 
@@ -63,11 +67,22 @@ final class AccountController extends Controller
         return redirect()->route('accounts.index')->with('success', 'Account removed.');
     }
 
-    public function ledger(Account $account): View
+    public function ledger(Request $request, Account $account, MoneyFlowService $flow): View
     {
+        $filters = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+        ]);
+
+        // Default to the current month so the screen stays fast on a busy account.
+        $from = $filters['from'] ?? now()->startOfMonth()->toDateString();
+        $to = $filters['to'] ?? null;
+
         return view('accounts.ledger', [
             'account' => $account,
-            'transactions' => $this->accounts->ledgerFor($account, null, null),
+            'statement' => $flow->statement($account, $from, $to),
+            'from' => $from,
+            'to' => $to,
         ]);
     }
 }

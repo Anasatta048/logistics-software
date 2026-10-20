@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\ExpenseCategory;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property-read User $enteredByUser
  * @property-read Account|null $account
+ * @property-read ExpenseCategory|null $category
  */
 class Expense extends Model
 {
@@ -26,8 +26,10 @@ class Expense extends Model
      */
     protected $fillable = [
         'expense_date',
-        'category',
+        'expense_category_id',
         'amount',
+        'payee',
+        'reference',
         'payment_method',
         'account_id',
         'attachment_path',
@@ -42,10 +44,14 @@ class Expense extends Model
     {
         return [
             'expense_date' => 'date',
-            'category' => ExpenseCategory::class,
             'amount' => 'decimal:2',
             'payment_method' => \App\Enums\PaymentMethod::class,
         ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
     }
 
     public function enteredByUser(): BelongsTo

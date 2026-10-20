@@ -15,6 +15,7 @@
         ]],
         ['Accounts', 'Where the money went.', [
             ['reports.expenses', 'reports.expenses', 'Expenses', 'Spending by category, with each category\'s share of the total.'],
+            ['reports.funds-flow', 'reports.fundsFlow', 'Funds Flow', 'Where money came from and where it went: per account opening + in - out = closing, by source, with every line traced to its document.'],
             ['reports.account-statement', 'reports.accountStatement', 'Account Statement', 'Every transaction on one account, with a running balance.'],
         ]],
         ['Commissions & summary', 'What dispatchers earned, and what is left for the business.', [

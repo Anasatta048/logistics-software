@@ -61,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         // Report has no Eloquent model to hang a discoverable Policy off of
         // (Section 0.1 still requires a Policy for authorization), so its
         // abilities are registered as named Gates here, one per report.
-        foreach (['viewAny', 'loads', 'drivers', 'brokers', 'invoices', 'receivables', 'receipts', 'conversions', 'expenses', 'accountStatement', 'dispatcherCommissions', 'profitAndLoss'] as $ability) {
+        foreach (['viewAny', 'loads', 'drivers', 'brokers', 'invoices', 'receivables', 'receipts', 'conversions', 'expenses', 'accountStatement', 'fundsFlow', 'dispatcherCommissions', 'profitAndLoss'] as $ability) {
             Gate::define("reports.{$ability}", fn (User $user): bool => (new ReportPolicy())->{$ability}($user));
         }
 

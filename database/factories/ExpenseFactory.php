@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
-use App\Enums\ExpenseCategory;
 use App\Models\Account;
 use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,7 +20,8 @@ class ExpenseFactory extends Factory
     {
         return [
             'expense_date' => fake()->dateTimeBetween('-30 days', 'now'),
-            'category' => fake()->randomElement(ExpenseCategory::cases()),
+            'expense_category_id' => fn () => ExpenseCategory::query()->inRandomOrder()->value('id') ?? ExpenseCategory::query()->create(['name' => 'General'])->id,
+            'payee' => fake()->company(),
             'amount' => fake()->randomFloat(2, 20, 900),
             'account_id' => Account::factory(),
             'attachment_path' => null,
@@ -31,6 +32,6 @@ class ExpenseFactory extends Factory
 
     public function inCategory(ExpenseCategory $category): static
     {
-        return $this->state(fn (array $attributes) => ['category' => $category]);
+        return $this->state(fn (array $attributes) => ['expense_category_id' => $category->id]);
     }
 }
