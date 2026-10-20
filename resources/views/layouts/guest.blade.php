@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Dreamelect Logistics') }}</title>
+        <title>{{ config('app.name') }}</title>
         @include('layouts.partials.head-icons')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -104,7 +104,7 @@
                     </div>
 
                     <p class="mt-6 text-center text-xs text-text-muted">
-                        {{ __('We Drive Your Dreams!') }} &middot; &copy; {{ now()->year }} {{ config('app.name', 'Dreamelect Logistics') }} LLC
+                        &copy; {{ now()->year }} {{ config('app.name') }}
                     </p>
                 </div>
             </div>

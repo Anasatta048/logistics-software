@@ -61,7 +61,7 @@
             </select>
         </x-field>
         <x-field name="commission_percentage" x-show="type === 'percentage'" x-cloak :label="__('Commission %')" icon="percent">
-            <input id="commission_percentage" name="commission_percentage" type="number" step="0.01" min="0" max="100" value="{{ old('commission_percentage', $user?->commission_percentage) }}">
+            <input id="commission_percentage" name="commission_percentage" type="number" step="0.01" min="0" max="100" value="{{ old('commission_percentage', $user?->commission_percentage ?? \App\Support\Settings\TenantSettings::get('finance.default_commission_percentage')) }}">
         </x-field>
         <x-field name="commission_fixed_amount" x-show="type === 'fixed'" x-cloak :label="__('Fixed amount per dispatch (USD)')" icon="dollar" :hint="__('Set in USD, converted to PKR at payout time.')">
             <input id="commission_fixed_amount" name="commission_fixed_amount" type="number" step="0.01" min="0" value="{{ old('commission_fixed_amount', $user?->commission_fixed_amount) }}">

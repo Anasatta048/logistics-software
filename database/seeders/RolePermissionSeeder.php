@@ -27,14 +27,17 @@ class RolePermissionSeeder extends Seeder
         // through pickup / loaded / delivered, `paid` marks it paid, `cancel`
         // cancels it. (Who sees the company commission follows the accounting
         // rights, see the view-company-commission gate.)
-        'loads' => ['view', 'create', 'edit', 'load', 'paid', 'cancel'],
-        'commissions' => ['view', 'pay'],
+        'loads' => ['view', 'view-all', 'create', 'edit', 'load', 'paid', 'cancel'],
+        // view-company: the company's own fee/earnings on loads, not just the dispatcher's cut.
+        'commissions' => ['view', 'pay', 'view-company'],
         'company-payments' => ['view', 'create', 'edit'],
         'invoices' => ['view', 'create', 'delete'],
         'expenses' => ['view', 'create', 'edit', 'delete'],
-        'accounts' => ['view', 'create', 'edit', 'delete'],
+        'accounts' => ['view', 'create', 'edit', 'delete', 'transfer'],
         'journal-vouchers' => ['view', 'create', 'edit', 'approve', 'void'],
         'reports' => ['view'],
+        'settings' => ['manage'],
+        'activity-logs' => ['view'],
     ];
 
     /**
@@ -56,7 +59,7 @@ class RolePermissionSeeder extends Seeder
 
         // Full access to money, view-only on loads.
         'accountant' => [
-            'companies.view', 'drivers.view', 'brokers.view', 'loads.view', 'commissions.view',
+            'companies.view', 'drivers.view', 'brokers.view', 'loads.view', 'loads.view-all', 'commissions.view',
             'equipment-types.view',
             'expenses.*', 'accounts.*', 'journal-vouchers.*',
             'company-payments.*',
@@ -64,7 +67,8 @@ class RolePermissionSeeder extends Seeder
             'reports.view',
         ],
 
-        'viewer' => ['*.view'],
+        // Read-only everywhere except the audit trail (a leading ! removes a match).
+        'viewer' => ['*.view', 'loads.view-all', '!activity-logs.*', '!users.*', '!roles.*'],
     ];
 
     public function run(): void
@@ -82,10 +86,13 @@ class RolePermissionSeeder extends Seeder
         $this->forgetPermissionCache();
 
         foreach (self::MATRIX as $role => $patterns) {
+            $allow = array_filter($patterns, fn (string $p): bool => ! str_starts_with($p, '!'));
+            $deny = array_map(fn (string $p): string => substr($p, 1), array_filter($patterns, fn (string $p): bool => str_starts_with($p, '!')));
+
             Role::findOrCreate($role)
                 ->syncPermissions(array_values(array_filter(
                     $permissions,
-                    fn (string $permission): bool => Str::is($patterns, $permission),
+                    fn (string $permission): bool => Str::is($allow, $permission) && ! Str::is($deny, $permission),
                 )));
         }
     }

@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call(SuperAdminSeeder::class);
 
         app(TenantContext::class)->run(DemoDataSeeder::demoTenant(), function (): void {
-            $this->call(InvoiceProfileSeeder::class);
+            
 
             foreach (config('saas.starter_equipment_types') as $name) {
                 EquipmentType::query()->firstOrCreate(['name' => $name]);

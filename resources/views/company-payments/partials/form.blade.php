@@ -40,7 +40,7 @@
             <x-field name="payment_method" :label="__('Payment method')" icon="credit-card" required>
                 <select id="payment_method" name="payment_method" required>
                     <option value="">{{ __('Select method') }}</option>
-                    @foreach (\App\Enums\PaymentMethod::cases() as $method)
+                    @foreach (\App\Enums\PaymentMethod::enabled(old('payment_method')) as $method)
                         <option value="{{ $method->value }}" @selected(old('payment_method', $payment?->payment_method?->value) === $method->value)>{{ $method->label() }}</option>
                     @endforeach
                 </select>

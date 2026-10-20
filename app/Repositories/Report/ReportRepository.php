@@ -374,7 +374,7 @@ final class ReportRepository
     /* ───────────────────────── Profit & loss ───────────────────────── */
 
     /**
-     * What Dreamelect has billed (company commission on Paid loads) minus what
+     * What the company has billed (company commission on Paid loads) minus what
      * it has actually spent, over the period. Driver pay is not a line here — it
      * was never ours to pay. Dispatcher commission is a staff cost, shown in its
      * own report rather than deducted here.

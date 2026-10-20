@@ -8,8 +8,8 @@
     <x-field name="mc_number" :label="__('MC number')" icon="hash" required :hint="__('The MC number belongs to the carrier, not to an individual driver.')">
         <input id="mc_number" name="mc_number" type="text" value="{{ old('mc_number', $company?->mc_number) }}" required>
     </x-field>
-    <x-field name="default_commission_percentage" :label="__('Default commission %')" icon="percent" required :hint="__('What this company owes Dreamelect on every load. You can still change it per load.')">
-        <input id="default_commission_percentage" name="default_commission_percentage" type="number" step="0.01" min="0" max="100" value="{{ old('default_commission_percentage', $company?->default_commission_percentage ?? '10') }}" required>
+    <x-field name="default_commission_percentage" :label="__('Default commission %')" icon="percent" required :hint="__('What this company owes you on every load. You can still change it per load.')">
+        <input id="default_commission_percentage" name="default_commission_percentage" type="number" step="0.01" min="0" max="100" value="{{ old('default_commission_percentage', $company?->default_commission_percentage ?? \App\Support\Settings\TenantSettings::get('finance.default_fee_percentage', 10)) }}" required>
     </x-field>
     <x-field name="address" class="span-2" :label="__('Address (city, state)')" icon="map-pin" :hint="__('Printed in the “Bill to” block of invoices.')">
         <input id="address" name="address" type="text" value="{{ old('address', $company?->address) }}" placeholder="KEMP, TX">

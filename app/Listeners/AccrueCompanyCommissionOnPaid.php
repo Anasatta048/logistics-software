@@ -15,7 +15,7 @@ final readonly class AccrueCompanyCommissionOnPaid
 
     /**
      * A load marked Paid makes its company commission receivable: the company
-     * now owes Dreamelect that amount, and it stays on the company's ledger
+     * now owes the company that amount, and it stays on the company's ledger
      * until a payment settles it.
      */
     public function handle(LoadPaid $event): void

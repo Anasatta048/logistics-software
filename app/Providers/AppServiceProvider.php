@@ -75,16 +75,16 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-saas', fn (User $user): bool => (bool) $user->is_super_admin);
 
         // App-wide settings (team timezones) belong to admins alone.
-        Gate::define('manage-settings', fn (User $user): bool => $user->hasRole('admin'));
+        Gate::define('manage-settings', fn (User $user): bool => $user->can('settings.manage'));
 
         // Plan caps (users / drivers / loads per month) apply on every insert.
         \App\Services\Tenancy\TenantLimits::register();
 
         // The company's commission is the business's earning: admin only.
-        Gate::define('view-company-commission', fn (User $user): bool => $user->hasRole('admin'));
+        Gate::define('view-company-commission', fn (User $user): bool => $user->can('commissions.view-company'));
 
         // The activity log shows everyone's actions, so it is admin-only too.
-        Gate::define('view-activity-logs', fn (User $user): bool => $user->hasRole('admin'));
+        Gate::define('view-activity-logs', fn (User $user): bool => $user->can('activity-logs.view'));
 
         // Audit trail: every model in config/activity.php. Sign-in/out is picked
         // up by LogAuthActivity through Laravel's listener discovery.

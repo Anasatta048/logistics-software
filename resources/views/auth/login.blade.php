@@ -23,7 +23,7 @@
                     <svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/></svg>
                 </span>
                 <input id="email" name="email" type="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                    placeholder="you@dreamelectlogistics.com"
+                    placeholder="you@company.com"
                     class="block w-full rounded-xl border-border bg-bg py-3 pl-11 pr-4 text-sm text-text-primary placeholder:text-text-muted/70 transition focus:border-brand-primary focus:bg-white focus:ring-2 focus:ring-brand-primary/20">
             </div>
         </div>

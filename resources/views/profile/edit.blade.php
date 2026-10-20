@@ -8,7 +8,6 @@
             'password' => ['Password', 'lock'],
             'appearance' => ['Appearance', 'palette'],
             'notifications' => ['Notifications', 'bell'],
-            'invoice' => $canTz ? ['Invoice', 'file-text'] : null,
             'timezones' => $canTz ? ['Timezones', 'clock'] : null,
         ]);
         $initial = $tab ?? ($errors->updatePassword->any() ? 'password' : ($errors->has('zones') || $errors->has('zones.*') ? 'timezones' : null));
@@ -124,31 +123,6 @@
                 <x-form-actions :submit="__('Save notifications')" />
             </form>
         </div>
-
-        {{-- INVOICE --}}
-        @if ($canTz)
-            @php($invoiceProfile = \App\Support\InvoiceProfile::get())
-            <div x-show="tab === 'invoice'" x-cloak class="form-anim space-y-5">
-                <form method="POST" action="{{ route('settings.invoice.update') }}" class="space-y-5">
-                    @csrf @method('PATCH')
-                    <x-form-section :title="__('Invoice details')" icon="file-text" :description="__('Printed on every invoice PDF — the name at the top and the contact details in the footer.')">
-                        <x-field name="company_name" class="span-2" :label="__('Company name')" icon="building" required>
-                            <input id="company_name" name="company_name" type="text" value="{{ old('company_name', $invoiceProfile['company_name']) }}" required>
-                        </x-field>
-                        <x-field name="email" :label="__('Contact email')" icon="mail" required>
-                            <input id="email_invoice" name="email" type="email" value="{{ old('email', $invoiceProfile['email']) }}" required>
-                        </x-field>
-                        <x-field name="phone" :label="__('Contact phone')" icon="phone" required :hint="__('Used when the dispatcher has no phone of their own.')">
-                            <input id="phone_invoice" name="phone" type="text" value="{{ old('phone', $invoiceProfile['phone']) }}" required>
-                        </x-field>
-                        <x-field name="website" class="span-2" :label="__('Website')" icon="globe">
-                            <input id="website" name="website" type="text" value="{{ old('website', $invoiceProfile['website']) }}">
-                        </x-field>
-                    </x-form-section>
-                    <x-form-actions :submit="__('Save invoice details')" />
-                </form>
-            </div>
-        @endif
 
         {{-- TIMEZONES --}}
         @if ($canTz)

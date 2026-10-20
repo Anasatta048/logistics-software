@@ -114,16 +114,16 @@ class User extends Authenticatable
     }
 
     /**
-     * Dispatchers only ever see their own rows; every other role holding the
-     * matching `*.view` permission sees all of them (SRD 2.2 — the accountant
-     * is view-only, so the scope is "dispatcher", not "not admin").
+     * Whoever lacks the `loads.view-all` right only ever sees their own rows
+     * (the standard dispatcher role). It is a right, not a role name, so a
+     * custom role is scoped, or not, exactly like a standard one.
      *
      * Used by the Load and Commission query scopes *and* their policies, so a
      * list and a single record can never disagree.
      */
     public function isScopedToOwnRecords(): bool
     {
-        return $this->hasRole('dispatcher') && ! $this->hasRole('admin');
+        return ! $this->is_super_admin && ! $this->can('loads.view-all');
     }
 
     /**

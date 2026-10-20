@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Settings\AppearanceController;
+use App\Http\Controllers\Settings\BusinessSettingsController;
 use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\TimezoneController;
 use Illuminate\Support\Facades\Route;
@@ -22,9 +23,12 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('settings/notifications', [NotificationPreferenceController::class, 'update'])
         ->name('settings.notifications');
 
-    // Admin-only: the business details printed on every invoice.
-    Route::patch('settings/invoice', [\App\Http\Controllers\Settings\InvoiceProfileController::class, 'update'])
-        ->name('settings.invoice.update')
+    // The settings hub (business profile, finance, operations), drawn from the registry.
+    Route::get('settings/business/{group?}', [BusinessSettingsController::class, 'edit'])
+        ->name('settings.business.edit')
+        ->middleware('can:manage-settings');
+    Route::patch('settings/business/{group}', [BusinessSettingsController::class, 'update'])
+        ->name('settings.business.update')
         ->middleware('can:manage-settings');
 
     // Admin-only: the team timezones shown beside every date-time.

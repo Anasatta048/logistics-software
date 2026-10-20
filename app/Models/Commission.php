@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * The dispatcher's own cut. `margin_amount` is the base it was computed from,
  * which since FLOW_UPDATE_PLAN Section 4 is the load's Company Commission
- * Amount — what Dreamelect earns — rather than rate minus driver pay.
+ * Amount — what the company earns — rather than rate minus driver pay.
  *
  * @property-read Load $loadRecord
  * @property-read User $dispatcher

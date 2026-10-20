@@ -21,6 +21,8 @@ return [
         'commissions' => ['Commissions', 'percent', 'Dispatcher commission payouts'],
         'reports' => ['Reports', 'chart-bar', 'Business reports and exports'],
         'users' => ['Users', 'user', 'People who can sign in'],
+        'settings' => ['Business settings', 'settings', 'Company profile, finance defaults, categories'],
+        'activity-logs' => ['Activity log', 'file-text', 'Who did what, and when'],
         'roles' => ['Roles & rights', 'key', 'Who can do what'],
     ],
 
@@ -35,5 +37,9 @@ return [
         'approve' => ['Approve', 'Can approve entries'],
         'void' => ['Void', 'Can void entries'],
         'pay' => ['Pay out', 'Can record a payout'],
+        'view-all' => ['See all records', 'Without this a person only sees their own loads and commissions'],
+        'view-company' => ['See company earnings', 'Can see the fee the company earns on each load'],
+        'transfer' => ['Move money between accounts', 'Can transfer funds from one account to another'],
+        'manage' => ['Manage', 'Can change these settings'],
     ],
 ];

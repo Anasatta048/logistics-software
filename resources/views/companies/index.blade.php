@@ -7,7 +7,7 @@
             <div class="min-w-0 flex-1">
                 <h1 class="text-xl font-extrabold tracking-tight text-text-primary dark:text-white">{{ __('Companies') }}</h1>
                 <p class="text-sm text-text-muted">
-                    {{ __('The carriers that own the trucks and the MC numbers. They owe Dreamelect a % of each load.') }}
+                    {{ __('The carriers that own the trucks and the MC numbers. They owe you a % of each load.') }}
                 </p>
             </div>
             @can('create', App\Models\Company::class)

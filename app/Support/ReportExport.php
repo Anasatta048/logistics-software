@@ -70,7 +70,7 @@ final class ReportExport
         }
 
         return [
-            'company' => config('app.name', 'Dreamelect Logistics'),
+            'company' => config('invoice.company_name') ?: config('app.name'),
             'title' => $title,
             'period' => $period,
             'filters' => $applied,
@@ -130,14 +130,12 @@ final class ReportExport
      */
     private static function pdf(string $title, string $file, array $headings, array $rows, array $meta, array $summary): Response
     {
-        $logo = public_path('images/logo.png');
-
         $pdf = Pdf::loadView('reports.pdf', [
             'meta' => $meta,
             'headings' => $headings,
             'rows' => $rows,
             'summary' => $summary,
-            'logo' => is_file($logo) ? 'data:image/png;base64,'.base64_encode((string) file_get_contents($logo)) : null,
+            'logo' => null,
         ])->setPaper('a4', count($headings) > 7 ? 'landscape' : 'portrait');
 
         return $pdf->download($file.'.pdf');

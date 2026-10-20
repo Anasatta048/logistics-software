@@ -2,8 +2,8 @@
     $brand = config('invoice.brand_color', '#E8622C');
     $navy = '#1B2A4A';
     $company = $invoice->company;
-    $logo = public_path('images/logo.png');
-    $hasLogo = is_file($logo);
+
+
     $money = fn ($value) => '$'.number_format((float) $value, 2);
     $pct = fn ($value) => rtrim(rtrim(number_format((float) $value, 2), '0'), '.').'%';
     $paid = $invoice->amountPaid();
@@ -55,12 +55,12 @@
         <table>
             <tr>
                 <td style="width: 55%;">
-                    @if ($hasLogo)
-                        <img src="{{ $logo }}" style="height: 54px;" alt="Dreamelect Logistics">
-                    @else
-                        <div style="font-size: 18px; font-weight: bold; letter-spacing: 2px;">DREAMELECT</div>
-                    @endif
-                    <div class="co">{{ config('invoice.company_name') }}<br>{{ config('invoice.email') }} · {{ config('invoice.phone') }}</div>
+                    <div style="font-size: 18px; font-weight: bold; letter-spacing: 1px;">{{ strtoupper(config('invoice.company_name')) }}</div>
+                    <div class="co">
+                        @if (config('invoice.address')){{ config('invoice.address') }}<br>@endif
+                        {{ config('invoice.email') }}@if (config('invoice.phone')) · {{ config('invoice.phone') }}@endif
+                        @if (config('invoice.tax_id'))<br>Tax ID: {{ config('invoice.tax_id') }}@endif
+                    </div>
                 </td>
                 <td>
                     <div class="word">INVOICE</div>
@@ -165,6 +165,10 @@
             </tr>
         </table>
     </div>
+
+    @if (config('invoice.note'))
+        <div style="margin-top: 14px; font-size: 11px; color: #555; white-space: pre-line;">{{ config('invoice.note') }}</div>
+    @endif
 
     <div class="foot">
         <table>

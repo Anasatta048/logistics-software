@@ -24,7 +24,7 @@ final class CommissionPayoutController extends Controller
 
     /**
      * Payout form. Separate from the expense form on purpose: an expense is
-     * Dreamelect's own overhead in PKR, this is somebody's earned cut being
+     * The company's own overhead in PKR, this is somebody's earned cut being
      * converted out of USD and handed over.
      */
     public function create(Request $request): View

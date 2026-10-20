@@ -54,7 +54,7 @@ final class DashboardService
         $commissions = $this->reports->dispatcherCommissions(array_filter([
             'from' => Carbon::now()->startOfMonth()->toDateString(),
             'to' => Carbon::now()->endOfMonth()->toDateString(),
-            'user_id' => $viewer->hasRole('admin') ? null : $viewer->id,
+            'user_id' => $viewer->isScopedToOwnRecords() ? $viewer->id : null,
         ]), $viewer)['totals'];
 
         // What companies still owe: every paid load's commission, less what has
@@ -114,7 +114,7 @@ final class DashboardService
     /**
      * Revenue & margin for the last 14 days (Section 3's dashboard chart).
      * Deliberately a self-contained query over `loads` directly (revenue = the
-     * load's rate, margin = the company commission Dreamelect earns on it)
+     * load's rate, margin = the company commission the company earns on it)
      * rather than extending ReportRepository — keeps this purely a
      * dashboard-chart concern, not a new report.
      *
@@ -156,6 +156,6 @@ final class DashboardService
     private function loadQuery(User $viewer): \Illuminate\Database\Eloquent\Builder
     {
         return Load::query()
-            ->when(! $viewer->hasRole('admin'), fn ($query) => $query->where('dispatcher_id', $viewer->id));
+            ->when($viewer->isScopedToOwnRecords(), fn ($query) => $query->where('dispatcher_id', $viewer->id));
     }
 }

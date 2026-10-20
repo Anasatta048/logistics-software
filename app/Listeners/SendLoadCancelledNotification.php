@@ -23,7 +23,7 @@ final class SendLoadCancelledNotification
             $dispatcher->notify($notification);
         }
 
-        User::role('admin')
+        User::permission('loads.view-all')
             ->where('id', '!=', $event->load->dispatcher_id)
             ->get()
             ->filter(fn (User $admin) => $admin->notification_preferences['load_cancelled'] ?? true)
