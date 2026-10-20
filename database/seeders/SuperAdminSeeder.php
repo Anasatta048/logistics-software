@@ -8,20 +8,22 @@ use Illuminate\Database\Seeder;
 
 /**
  * The platform owner. Login: superadmin@logistics.test / password123
- * (change after first login). Safe to re-run.
+ * (change after first login). Safe to re-run. Belongs to no tenant.
  */
 class SuperAdminSeeder extends Seeder
 {
     public function run(): void
     {
-        User::firstOrCreate(
-            ['email' => 'superadmin@logistics.test'],
-            [
-                'name' => 'Super Admin',
-                'password' => 'password123',
-                'status' => UserStatus::Active,
-                'email_verified_at' => now(),
-            ],
-        )->syncRoles('super-admin');
+        $user = User::withoutGlobalScopes()->firstOrNew(['email' => 'superadmin@logistics.test']);
+
+        $user->fill([
+            'name' => 'Super Admin',
+            'password' => $user->exists ? $user->password : 'password123',
+            'status' => UserStatus::Active,
+        ]);
+        $user->is_super_admin = true;
+        $user->tenant_id = null;
+        $user->email_verified_at ??= now();
+        $user->save();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
  */
 class CommissionPayout extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'dispatcher_id', 'usd_amount', 'conversion_rate', 'pkr_amount', 'payment_method',
         'payment_account_id', 'paid_at', 'reference', 'notes', 'paid_by',

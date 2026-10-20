@@ -3,37 +3,40 @@
 namespace Database\Seeders;
 
 use App\Enums\UserStatus;
+use App\Models\EquipmentType;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
     /**
-     * Seed the application's database.
+     * Seed the application's database: the platform (standard roles, plans,
+     * super admin) and one demo workspace to click around in.
      */
     public function run(): void
     {
         $this->call(RolePermissionSeeder::class);
-        $this->call(InvoiceProfileSeeder::class);
         $this->call(PlanSeeder::class);
         $this->call(SuperAdminSeeder::class);
 
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@dreamelectlogistics.com',
-            'status' => UserStatus::Active,
-        ])->assignRole('admin');
+        app(TenantContext::class)->run(DemoDataSeeder::demoTenant(), function (): void {
+            $this->call(InvoiceProfileSeeder::class);
 
-        // Demo dispatcher so the Phase 1 "sign in as a dispatcher" check works out
-        // of the box. Password is the factory default.
-        User::factory()->create([
-            'name' => 'Dispatch Demo',
-            'email' => 'dispatcher@dreamelectlogistics.com',
-            'status' => UserStatus::Active,
-            'commission_percentage' => 10,
-        ])->assignRole('dispatcher');
+            foreach (config('saas.starter_equipment_types') as $name) {
+                EquipmentType::query()->firstOrCreate(['name' => $name]);
+            }
+
+            // Password is the factory default ("password").
+            User::query()->firstOrCreate(
+                ['email' => 'admin@dreamelectlogistics.com'],
+                User::factory()->make(['name' => 'Admin', 'status' => UserStatus::Active])->getAttributes(),
+            )->assignRole('admin');
+
+            User::query()->firstOrCreate(
+                ['email' => 'dispatcher@dreamelectlogistics.com'],
+                User::factory()->make(['name' => 'Dispatch Demo', 'status' => UserStatus::Active, 'commission_percentage' => 10])->getAttributes(),
+            )->assignRole('dispatcher');
+        });
     }
 }

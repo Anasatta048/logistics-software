@@ -15,7 +15,6 @@ use App\Services\Company\CompanyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 final class CompanyPaymentController extends Controller
@@ -103,7 +102,7 @@ final class CompanyPaymentController extends Controller
     public function suggestions(Request $request): JsonResponse
     {
         $filters = $request->validate([
-            'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
+            'company_id' => ['required', 'integer', \App\Support\Tenancy\TenantRule::exists('companies', 'id')],
             'period_from' => ['nullable', 'date'],
             'period_to' => ['nullable', 'date'],
         ]);

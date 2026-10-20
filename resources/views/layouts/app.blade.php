@@ -59,6 +59,16 @@
 
 
                 <main class="relative flex-1 overflow-y-auto">
+                    @if (session('impersonating_tenant_id') && auth()->user()?->is_super_admin)
+                        <div class="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-brand-gold px-4 py-2 text-sm font-semibold text-white">
+                            <x-icon name="eye" :size="16" />
+                            <span class="min-w-0 flex-1">{{ __('Viewing workspace :name as super admin', ['name' => app(\App\Support\Tenancy\TenantContext::class)->tenant()?->name]) }}</span>
+                            <form method="POST" action="{{ route('super-admin.tenants.leave') }}">
+                                @csrf
+                                <button class="bg-white/20 px-3 py-1 text-xs font-bold hover:bg-white/30">{{ __('Exit workspace') }}</button>
+                            </form>
+                        </div>
+                    @endif
                     <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {{-- A form sent back with validation errors: the messages stay inline
                              under their fields and are also raised as toasts (lifted by toasts.js). --}}

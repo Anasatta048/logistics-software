@@ -21,7 +21,7 @@ class StoreRoleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9\-]+$/', Rule::unique('roles', 'name')],
+            'name' => ['required', 'string', 'max:100', 'regex:/^[a-z0-9\-]+$/', \App\Support\Tenancy\TenantRule::roleUnique()],
             // Optional on create: a role can be set up first and given its
             // rights in the same form, or later.
             'permissions' => ['nullable', 'array'],

@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Eloquent\Model;
+use LogicException;
 
 /**
- * Admin-editable application settings, one JSON value per key. Read through
- * Setting::read() so a missing table or key (fresh install, tests) quietly
- * falls back to the caller's default instead of breaking the page.
+ * Per-tenant application settings, one JSON value per (tenant, key). Read
+ * through Setting::read(): the tenant's whole settings table is loaded once per
+ * request, and a missing table, key or tenant quietly falls back to the
+ * caller's default instead of breaking the page.
  */
 class Setting extends Model
 {
-    public $incrementing = false;
-
-    protected $primaryKey = 'key';
-
-    protected $keyType = 'string';
+    use BelongsToTenant;
 
     protected $fillable = ['key', 'value'];
 
@@ -27,16 +27,24 @@ class Setting extends Model
     public static function read(string $key, mixed $default = null): mixed
     {
         try {
-            $row = static::query()->find($key);
+            $settings = app(TenantContext::class)->settings();
         } catch (\Throwable) {
             return $default;
         }
 
-        return $row?->value ?? $default;
+        return $settings[$key] ?? $default;
     }
 
     public static function write(string $key, mixed $value): void
     {
+        $context = app(TenantContext::class);
+
+        if (! $context->has()) {
+            throw new LogicException('Settings are per tenant; no tenant is active.');
+        }
+
         static::query()->updateOrCreate(['key' => $key], ['value' => $value]);
+
+        $context->forgetSettings();
     }
 }

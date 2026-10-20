@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DriverStatus;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Driver extends Model
 {
+    use BelongsToTenant;
+
     /** @use HasFactory<\Database\Factories\DriverFactory> */
     use HasFactory;
 

@@ -26,11 +26,11 @@ final class ReportFilterRequest extends FormRequest
         return [
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'broker_id' => ['nullable', 'integer', 'exists:brokers,id'],
-            'driver_id' => ['nullable', 'integer', 'exists:drivers,id'],
-            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
-            'account_id' => ['nullable', 'integer', 'exists:accounts,id'],
+            'user_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('users', 'id')],
+            'broker_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('brokers', 'id')],
+            'driver_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('drivers', 'id')],
+            'company_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('companies', 'id')],
+            'account_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')],
             'status' => ['nullable', 'string'],
             'export' => ['nullable', 'in:csv,pdf'],
         ];

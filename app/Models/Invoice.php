@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\CompanyPaymentStatus;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Invoice extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'invoice_number', 'company_id', 'driver_id', 'driver_name',
         'invoice_date', 'due_date', 'period_from', 'period_to',

@@ -10,7 +10,7 @@ class TenantRequest extends Model
 {
     protected $fillable = [
         'company_name', 'contact_name', 'email', 'phone', 'fleet_size', 'plan_id',
-        'message', 'status', 'admin_notes', 'reviewed_by', 'reviewed_at',
+        'message', 'status', 'admin_notes', 'tenant_id', 'reviewed_by', 'reviewed_at',
     ];
 
     protected function casts(): array
@@ -25,6 +25,12 @@ class TenantRequest extends Model
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    /** @return BelongsTo<Tenant, $this> */
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
     }
 
     /** @return BelongsTo<User, $this> */

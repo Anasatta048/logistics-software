@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Observers\ActivityObserver;
 use App\Policies\ReportPolicy;
@@ -16,7 +17,6 @@ use App\Services\Map\StubMapService;
 use App\Support\MapProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use Spatie\Permission\Models\Role;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // One tenant context per request/job; scoped so it never outlives either.
+        $this->app->scoped(\App\Support\Tenancy\TenantContext::class);
+
         // Map vendors (Geoapify / Google) are chosen by App\Support\MapProvider.
         $this->app->bind(GeoapifyClient::class, fn (): GeoapifyClient => new GeoapifyClient(config('services.geoapify.key')));
         $this->app->bind(GoogleClient::class, fn (): GoogleClient => new GoogleClient(config('services.google_maps.key')));
@@ -55,9 +58,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Invoice business details live in the settings table (Settings → Invoice).
-        \App\Support\InvoiceProfile::apply();
-
         // Report has no Eloquent model to hang a discoverable Policy off of
         // (Section 0.1 still requires a Policy for authorization), so its
         // abilities are registered as named Gates here, one per report.
@@ -71,11 +71,14 @@ class AppServiceProvider extends ServiceProvider
 
         // The platform owner (SaaS super admin) passes every check and alone
         // reaches the plans / access-requests area.
-        Gate::before(fn (User $user): ?bool => $user->hasRole('super-admin') ? true : null);
-        Gate::define('manage-saas', fn (User $user): bool => $user->hasRole('super-admin'));
+        Gate::before(fn (User $user): ?bool => $user->is_super_admin ? true : null);
+        Gate::define('manage-saas', fn (User $user): bool => (bool) $user->is_super_admin);
 
         // App-wide settings (team timezones) belong to admins alone.
         Gate::define('manage-settings', fn (User $user): bool => $user->hasRole('admin'));
+
+        // Plan caps (users / drivers / loads per month) apply on every insert.
+        \App\Services\Tenancy\TenantLimits::register();
 
         // The company's commission is the business's earning: admin only.
         Gate::define('view-company-commission', fn (User $user): bool => $user->hasRole('admin'));

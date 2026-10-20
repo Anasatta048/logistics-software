@@ -43,6 +43,7 @@ return [
                     ['label' => 'All plans', 'route' => 'super-admin.plans.index'],
                     ['label' => 'Add plan', 'route' => 'super-admin.plans.create'],
                 ]],
+                ['label' => 'Workspaces', 'route' => 'super-admin.tenants.index', 'icon' => 'building', 'gate' => 'manage-saas'],
                 ['label' => 'Access Requests', 'route' => 'super-admin.requests.index', 'icon' => 'inbox', 'gate' => 'manage-saas'],
             ],
         ],
@@ -109,7 +110,7 @@ return [
                 ]],
                 ['label' => 'Roles & Rights', 'route' => 'roles.index', 'icon' => 'key', 'gate' => ['viewAny', User::class], 'children' => [
                     ['label' => 'All roles', 'route' => 'roles.index'],
-                    ['label' => 'Add role', 'route' => 'roles.create', 'gate' => ['create', Spatie\Permission\Models\Role::class]],
+                    ['label' => 'Add role', 'route' => 'roles.create', 'gate' => ['create', App\Models\Role::class]],
                 ]],
                 ['label' => 'Settings', 'route' => 'profile.edit', 'icon' => 'settings', 'gate' => null],
                 ['label' => 'Activity Log', 'route' => 'activity-logs.index', 'icon' => 'file-text', 'gate' => 'view-activity-logs'],

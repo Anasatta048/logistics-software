@@ -2,6 +2,7 @@
 
 namespace App\Services\Support;
 
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -34,6 +35,11 @@ final class AttachmentOptimizer
      */
     public function store(UploadedFile $file, string $directory, string $disk = 'public'): string
     {
+        // Each tenant's files live under their own folder: easy to export,
+        // quota or delete as a unit, and a stray path never points at another tenant.
+        $tenantId = app(TenantContext::class)->id();
+        $directory = $tenantId ? "tenants/{$tenantId}/".trim($directory, '/') : $directory;
+
         try {
             $mime = (string) $file->getMimeType();
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class InvoiceLine extends Model
 {
+    use BelongsToTenant;
+
     public $timestamps = false;
 
     protected $fillable = ['invoice_id', 'load_id', 'load_date', 'description', 'miles', 'rate', 'percentage', 'fee'];

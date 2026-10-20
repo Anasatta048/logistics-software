@@ -8,9 +8,9 @@ use App\Enums\TransactionType;
 use App\Models\JournalVoucher;
 use App\Models\Load;
 use App\Models\User;
+use App\Services\Support\AttachmentOptimizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use App\Services\Support\AttachmentOptimizer;
 
 final class JournalVoucherService
 {

@@ -14,6 +14,7 @@ use App\Models\CompanyPayment;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Load;
+use App\Models\User;
 use App\Support\Timezones;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -350,7 +351,7 @@ final class ReportRepository
             ->get()
             ->keyBy('dispatcher_id');
 
-        return DB::table('users')
+        return User::query()->toBase()
             ->whereIn('id', $earned->keys()->merge($payouts->keys())->unique()->values())
             ->orderBy('name')
             ->get(['id', 'name'])

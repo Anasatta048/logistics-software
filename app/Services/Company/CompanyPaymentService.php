@@ -16,13 +16,13 @@ use App\Models\Load;
 use App\Models\User;
 use App\Services\Account\AccountService;
 use App\Services\Ledger\LedgerService;
+use App\Services\Support\AttachmentOptimizer;
 use App\Support\Timezones;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use App\Services\Support\AttachmentOptimizer;
 
 /**
  * FLOW_UPDATE_PLAN Section 5: the weekly USD receipt.

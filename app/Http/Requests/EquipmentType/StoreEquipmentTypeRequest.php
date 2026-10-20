@@ -3,7 +3,6 @@
 namespace App\Http\Requests\EquipmentType;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreEquipmentTypeRequest extends FormRequest
 {
@@ -24,7 +23,7 @@ class StoreEquipmentTypeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', Rule::unique('equipment_types', 'name')->ignore($this->route('equipmentType'))],
+            'name' => ['required', 'string', 'max:100', \App\Support\Tenancy\TenantRule::unique('equipment_types', 'name')->ignore($this->route('equipmentType'))],
         ];
     }
 

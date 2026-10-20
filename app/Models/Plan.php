@@ -31,6 +31,12 @@ class Plan extends Model
         return $this->hasMany(TenantRequest::class);
     }
 
+    /** @return HasMany<Tenant, $this> */
+    public function tenants(): HasMany
+    {
+        return $this->hasMany(Tenant::class);
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true)->orderBy('sort_order');

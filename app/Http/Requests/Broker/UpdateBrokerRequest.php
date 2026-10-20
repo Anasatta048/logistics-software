@@ -25,7 +25,7 @@ class UpdateBrokerRequest extends FormRequest
             'company_name' => ['required', 'string', 'max:255'],
             'broker_mc_number' => [
                 'required', 'string', 'max:32',
-                Rule::unique('brokers', 'broker_mc_number')->ignore($this->route('broker')),
+                \App\Support\Tenancy\TenantRule::unique('brokers', 'broker_mc_number')->ignore($this->route('broker')),
             ],
             'credit_notes' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', Rule::enum(BrokerStatus::class)],

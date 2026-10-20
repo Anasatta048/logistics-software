@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Load;
 
-use App\Enums\AttachmentType;
 use App\Enums\LoadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Load\AttachDocumentRequest;

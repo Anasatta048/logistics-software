@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
@@ -42,7 +42,6 @@ class RolePermissionSeeder extends Seeder
      * new permission row, not 45 new lines per role.
      */
     private const MATRIX = [
-        'super-admin' => ['*'],
         'admin' => ['*'],
 
         // Own loads only (scoped in the Service/Policy, not the permission set).
@@ -73,6 +72,9 @@ class RolePermissionSeeder extends Seeder
         // Before: a stale cache would make findOrCreate() re-insert rows that
         // already exist. After: the cache still holds the pre-seed list, so
         // `syncPermissions()` would not find the rows just created.
+        // Standard roles are shared (team NULL), so seed them outside any tenant.
+        app(PermissionRegistrar::class)->setPermissionsTeamId(null);
+
         $this->forgetPermissionCache();
 
         $permissions = $this->seedPermissions();

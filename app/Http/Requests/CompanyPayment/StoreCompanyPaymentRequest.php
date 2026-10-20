@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\CompanyPayment;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\TaxType;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreCompanyPaymentRequest extends FormRequest
@@ -23,7 +23,7 @@ class StoreCompanyPaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'company_id' => ['required', 'integer', Rule::exists('companies', 'id')],
+            'company_id' => ['required', 'integer', \App\Support\Tenancy\TenantRule::exists('companies', 'id')],
             'period_from' => ['required', 'date'],
             'period_to' => ['required', 'date', 'after_or_equal:period_from'],
             // Which loads this receipt covers is decided by the service, oldest
@@ -37,7 +37,7 @@ class StoreCompanyPaymentRequest extends FormRequest
             // Optional: convert the USD to PKR in the same save.
             'convert' => ['nullable', 'boolean'],
             'conversion_rate' => ['exclude_unless:convert,1', 'required', 'numeric', 'min:0.0001', 'max:999999'],
-            'deposit_account_id' => ['exclude_unless:convert,1', 'nullable', 'integer', Rule::exists('accounts', 'id')->where('status', 'active')->whereNull('deleted_at')],
+            'deposit_account_id' => ['exclude_unless:convert,1', 'nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')->whereNull('deleted_at')],
             'conversion_date' => ['exclude_unless:convert,1', 'nullable', 'date'],
             'tax_applicable' => ['exclude_unless:convert,1', 'nullable', 'boolean'],
             'tax_type' => ['exclude_unless:convert,1', 'nullable', 'required_if:tax_applicable,1', Rule::enum(TaxType::class)],

@@ -9,13 +9,13 @@ use App\Models\Account;
 use App\Models\Expense;
 use App\Models\User;
 use App\Services\Account\AccountService;
+use App\Services\Support\AttachmentOptimizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\Services\Support\AttachmentOptimizer;
 
 final class ExpenseService
 {

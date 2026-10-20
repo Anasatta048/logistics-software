@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CommissionType;
 use App\Enums\UserStatus;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,8 +15,12 @@ use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
+    use BelongsToTenant;
+
     use HasFactory;
-    use HasRoles;
+    use HasRoles {
+        hasRole as private spatieHasRole;
+    }
     use Notifiable;
 
     /**
@@ -62,6 +67,7 @@ class User extends Authenticatable
             'commission_percentage' => 'decimal:2',
             'commission_fixed_amount' => 'decimal:2',
             'notification_preferences' => 'array',
+            'is_super_admin' => 'boolean',
         ];
     }
 
@@ -88,6 +94,18 @@ class User extends Authenticatable
         static::creating(function (self $user): void {
             $user->notification_preferences ??= self::defaultNotificationPreferences();
         });
+    }
+
+    /**
+     * The platform owner is not bound to a tenant's role set: while inside a
+     * workspace (impersonating) they hold every role, so role checks written
+     * for tenant users pass for them without a special case at each call site.
+     *
+     * @param  mixed  $roles
+     */
+    public function hasRole($roles, ?string $guard = null): bool
+    {
+        return $this->is_super_admin || $this->spatieHasRole($roles, $guard);
     }
 
     public function isActive(): bool
@@ -160,7 +178,8 @@ class User extends Authenticatable
     public function homeRouteName(): string
     {
         $byRole = match (true) {
-            $this->hasRole('super-admin') => 'super-admin.dashboard',
+            $this->is_super_admin && ! app(\App\Support\Tenancy\TenantContext::class)->has() => 'super-admin.dashboard',
+            $this->is_super_admin => 'dashboard',
             $this->hasRole('dispatcher') => 'loads.index',
             $this->hasRole('accountant') => 'accounts.index',
             default => 'dashboard',

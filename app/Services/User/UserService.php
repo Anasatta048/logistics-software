@@ -4,13 +4,13 @@ namespace App\Services\User;
 
 use App\Enums\CommissionType;
 use App\Enums\UserStatus;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\Activity\ActivityLogger;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 
 final class UserService
 {
@@ -132,6 +132,6 @@ final class UserService
      */
     public function roles(): Collection
     {
-        return Role::query()->orderBy('name')->pluck('name');
+        return Role::query()->visibleTo(app(\App\Support\Tenancy\TenantContext::class)->id())->orderBy('name')->pluck('name');
     }
 }

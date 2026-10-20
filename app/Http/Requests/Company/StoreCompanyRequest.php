@@ -42,7 +42,7 @@ class StoreCompanyRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             // Unique across soft-deleted rows too: a retired MC number must not
             // be handed to a different carrier.
-            'mc_number' => ['required', 'string', 'max:32', Rule::unique('companies', 'mc_number')],
+            'mc_number' => ['required', 'string', 'max:32', \App\Support\Tenancy\TenantRule::unique('companies', 'mc_number')],
             'address' => ['nullable', 'string', 'max:255'],
             'contact_person' => ['nullable', 'string', 'max:255'],
             'phone' => ['nullable', 'string', 'max:32', 'regex:/^[0-9+()\-.\s]+$/'],

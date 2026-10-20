@@ -21,10 +21,10 @@ Route::middleware('auth')
             ->middleware('can:viewAny,App\Models\User');
         Route::get('/create', [RoleController::class, 'create'])
             ->name('create')
-            ->middleware('can:create,Spatie\Permission\Models\Role');
+            ->middleware('can:create,App\Models\Role');
         Route::post('/', [RoleController::class, 'store'])
             ->name('store')
-            ->middleware('can:create,Spatie\Permission\Models\Role');
+            ->middleware('can:create,App\Models\Role');
         Route::get('/{role}/edit', [RoleController::class, 'edit'])
             ->name('edit')
             ->middleware('can:update,role');

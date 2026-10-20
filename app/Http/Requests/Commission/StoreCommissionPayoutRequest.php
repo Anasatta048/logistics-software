@@ -26,11 +26,11 @@ final class StoreCommissionPayoutRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'dispatcher_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'dispatcher_id' => ['required', 'integer', \App\Support\Tenancy\TenantRule::exists('users', 'id')],
             'usd_amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
             'conversion_rate' => ['required', 'numeric', 'min:0.0001', 'max:999999'],
             'payment_method' => ['required', Rule::enum(\App\Enums\PaymentMethod::class)],
-            'payment_account_id' => ['nullable', Rule::exists('accounts', 'id')->where('status', 'active')->whereNull('deleted_at')],
+            'payment_account_id' => ['nullable', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')->whereNull('deleted_at')],
             'paid_at' => ['required', 'date'],
             'reference' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],

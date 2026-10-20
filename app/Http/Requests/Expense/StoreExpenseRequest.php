@@ -27,7 +27,7 @@ class StoreExpenseRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
             'payment_method' => ['required', Rule::enum(\App\Enums\PaymentMethod::class)],
             // Optional: an expense can be recorded without touching any account.
-            'account_id' => ['nullable', Rule::exists('accounts', 'id')->where('status', 'active')],
+            'account_id' => ['nullable', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')],
             'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

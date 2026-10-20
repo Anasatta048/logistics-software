@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\CompanyPaymentStatus;
 use App\Enums\TaxType;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class CompanyPayment extends Model
 {
+    use BelongsToTenant;
+
     /** @use HasFactory<\Database\Factories\CompanyPaymentFactory> */
     use HasFactory;
 

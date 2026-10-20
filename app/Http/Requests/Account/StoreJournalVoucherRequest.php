@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Account;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class StoreJournalVoucherRequest extends FormRequest
 {
@@ -22,12 +21,12 @@ class StoreJournalVoucherRequest extends FormRequest
     {
         return [
             'date' => ['required', 'date'],
-            'debit_account_id' => ['required', 'different:credit_account_id', Rule::exists('accounts', 'id')->where('status', 'active')],
-            'credit_account_id' => ['required', Rule::exists('accounts', 'id')->where('status', 'active')],
+            'debit_account_id' => ['required', 'different:credit_account_id', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')],
+            'credit_account_id' => ['required', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')],
             'amount' => ['required', 'numeric', 'min:0.01', 'max:99999999'],
             'narration' => ['required', 'string', 'max:2000'],
             'attachment' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'load_id' => ['nullable', Rule::exists('loads', 'id')],
+            'load_id' => ['nullable', \App\Support\Tenancy\TenantRule::exists('loads', 'id')],
         ];
     }
 

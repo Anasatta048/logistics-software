@@ -23,7 +23,7 @@ class StoreBrokerRequest extends FormRequest
     {
         return [
             'company_name' => ['required', 'string', 'max:255'],
-            'broker_mc_number' => ['required', 'string', 'max:32', 'unique:brokers,broker_mc_number'],
+            'broker_mc_number' => ['required', 'string', 'max:32', \App\Support\Tenancy\TenantRule::unique('brokers', 'broker_mc_number')],
             'credit_notes' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', Rule::enum(BrokerStatus::class)],
         ];

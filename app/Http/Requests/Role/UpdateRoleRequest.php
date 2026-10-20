@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests\Role;
 
-use Illuminate\Validation\Rule;
-
 final class UpdateRoleRequest extends StoreRoleRequest
 {
     /**
@@ -16,7 +14,7 @@ final class UpdateRoleRequest extends StoreRoleRequest
         return array_merge(parent::rules(), [
             'name' => [
                 'required', 'string', 'max:100', 'regex:/^[a-z0-9\-]+$/',
-                Rule::unique('roles', 'name')->ignore($role),
+                \App\Support\Tenancy\TenantRule::roleUnique()->ignore($role),
             ],
         ]);
     }

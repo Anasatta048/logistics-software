@@ -19,7 +19,7 @@ final class UpdateCompanyRequest extends StoreCompanyRequest
                 'required',
                 'string',
                 'max:32',
-                Rule::unique('companies', 'mc_number')->ignore($this->route('company')),
+                \App\Support\Tenancy\TenantRule::unique('companies', 'mc_number')->ignore($this->route('company')),
             ],
         ]);
     }

@@ -5,34 +5,36 @@ namespace Database\Seeders;
 use App\Enums\AccountStatus;
 use App\Enums\AccountType;
 use App\Enums\AttachmentType;
-use App\Enums\BrokerStatus;
+use App\Enums\CommissionStatus;
 use App\Enums\CommissionType;
 use App\Enums\DriverStatus;
 use App\Enums\ExpenseCategory;
 use App\Enums\LoadStatus;
 use App\Enums\TaxType;
+use App\Enums\TenantStatus;
 use App\Enums\UserStatus;
 use App\Models\Account;
 use App\Models\Broker;
 use App\Models\Commission;
-use App\Enums\CommissionStatus;
 use App\Models\Company;
-use App\Models\CompanyPayment;
 use App\Models\Driver;
 use App\Models\EquipmentType;
 use App\Models\Expense;
 use App\Models\Load;
 use App\Models\LoadAttachment;
+use App\Models\Plan;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Account\AccountService;
 use App\Services\Account\JournalVoucherService;
 use App\Services\Commission\CommissionPayoutService;
-use App\Services\Ledger\LedgerService;
 use App\Services\Company\CompanyPaymentService;
 use App\Services\Expense\ExpenseService;
+use App\Services\Ledger\LedgerService;
 use App\Services\Load\LoadCancellationService;
 use App\Services\Load\LoadService;
 use App\Services\Load\LoadStatusService;
+use App\Support\Tenancy\TenantContext;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -63,7 +65,32 @@ class DemoDataSeeder extends Seeder
         ['Kansas City, MO', 39.0997, -94.5786],
     ];
 
+    /** The demo company everything below belongs to. */
+    public static function demoTenant(): Tenant
+    {
+        $plan = Plan::query()->where('slug', 'enterprise')->first();
+
+        return Tenant::query()->firstOrCreate(['slug' => 'dreamelect-demo'], [
+            'name' => 'Dreamelect Logistics (demo)',
+            'plan_id' => $plan?->id,
+            'status' => TenantStatus::Active,
+            'subscription_ends_at' => now()->addYear(),
+            'contact_name' => 'Admin',
+            'email' => 'admin@dreamelectlogistics.com',
+        ]);
+    }
+
     public function run(): void
+    {
+        $tenant = self::demoTenant();
+
+        // Everything is created as the demo tenant, exactly as a real one would be.
+        app(TenantContext::class)->run($tenant, function (): void {
+            $this->seedTenant();
+        });
+    }
+
+    private function seedTenant(): void
     {
         if (Company::query()->exists() || Load::query()->exists()) {
             $this->command?->warn('Demo data skipped: companies/loads already exist. Use migrate:fresh --seed first for a clean start.');
@@ -72,8 +99,6 @@ class DemoDataSeeder extends Seeder
         }
 
         mt_srand(2026);
-
-        $this->call(RolePermissionSeeder::class);
 
         $users = $this->users();
         $companies = $this->companies();

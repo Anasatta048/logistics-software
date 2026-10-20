@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Invoice;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 final class StoreInvoiceRequest extends FormRequest
 {
@@ -21,13 +20,13 @@ final class StoreInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'driver_id' => ['required', 'integer', Rule::exists('drivers', 'id')->whereNull('deleted_at')],
+            'driver_id' => ['required', 'integer', \App\Support\Tenancy\TenantRule::exists('drivers', 'id')->whereNull('deleted_at')],
             'invoice_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:invoice_date'],
             'period_from' => ['required', 'date'],
             'period_to' => ['required', 'date', 'after_or_equal:period_from'],
             'load_ids' => ['required', 'array', 'min:1'],
-            'load_ids.*' => ['integer', 'distinct', Rule::exists('loads', 'id')],
+            'load_ids.*' => ['integer', 'distinct', \App\Support\Tenancy\TenantRule::exists('loads', 'id')],
             'include_previous' => ['nullable', 'boolean'],
             'use_credit' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:2000'],

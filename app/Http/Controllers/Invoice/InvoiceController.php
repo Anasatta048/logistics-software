@@ -50,7 +50,7 @@ final class InvoiceController extends Controller
     public function loads(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'driver_id' => ['required', 'integer', 'exists:drivers,id'],
+            'driver_id' => ['required', 'integer', \App\Support\Tenancy\TenantRule::exists('drivers', 'id')],
             'from' => ['required', 'date'],
             'to' => ['required', 'date', 'after_or_equal:from'],
         ]);

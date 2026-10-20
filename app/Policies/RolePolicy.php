@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
+use App\Models\Role;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 /**
  * Role and permission editing is Admin-only, same deal as UserPolicy: the grant
@@ -28,11 +28,20 @@ final class RolePolicy
 
     public function update(User $user, Role $role): bool
     {
-        return $user->can('roles.edit');
+        // The shared standard roles are the platform's; a tenant only edits its own.
+        return $this->ownedBy($role) && $user->can('roles.edit');
     }
 
     public function delete(User $user, Role $role): bool
     {
-        return $user->can('roles.delete');
+        return $this->ownedBy($role) && $user->can('roles.delete');
+    }
+
+    /** Only a tenant's own custom role is its to change; the shared ones and other tenants' are not. */
+    private function ownedBy(Role $role): bool
+    {
+        $tenantId = app(\App\Support\Tenancy\TenantContext::class)->id();
+
+        return $tenantId !== null && $role->team_id === $tenantId;
     }
 }

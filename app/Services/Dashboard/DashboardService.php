@@ -2,8 +2,8 @@
 
 namespace App\Services\Dashboard;
 
-use App\Enums\LoadStatus;
 use App\Enums\DriverStatus;
+use App\Enums\LoadStatus;
 use App\Models\Company;
 use App\Models\Driver;
 use App\Models\Load;

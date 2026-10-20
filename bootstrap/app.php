@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Behind Coolify / a reverse proxy: trust X-Forwarded-* so HTTPS URLs and
         // secure cookies are generated correctly.
         $middleware->trustProxies(at: '*');
+
+        // Pins the request to the signed-in user's tenant (see ResolveTenant).
+        $middleware->web(append: [\App\Http\Middleware\ResolveTenant::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

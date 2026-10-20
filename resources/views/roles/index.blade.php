@@ -52,10 +52,10 @@
                     </div>
 
                     <div class="mt-5 flex items-center gap-2 border-t border-border pt-4 dark:border-white/10">
-                        @can('roles.edit')
+                        @can('update', $role)
                             <a href="{{ route('roles.edit', $role) }}" class="btn-ghost btn-sm flex-1"><x-icon name="pencil" :size="14" /> {{ __('Edit rights') }}</a>
                         @endcan
-                        @if ($role->users_count === 0)
+                        @if (! $role->isStandard() && $role->users_count === 0)
                             <form method="POST" action="{{ route('roles.destroy', $role) }}">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn-ghost btn-sm !text-status-cancelled" title="{{ __('Remove') }}" data-confirm="Remove the role “{{ $role->name }}”?"><x-icon name="trash" :size="14" /></button>

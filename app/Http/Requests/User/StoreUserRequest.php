@@ -25,10 +25,10 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'phone' => ['nullable', 'string', 'max:32'],
             'password' => ['required', 'confirmed', Password::defaults()],
-            'role' => ['required', 'string', Rule::exists('roles', 'name')],
+            'role' => ['required', 'string', \App\Support\Tenancy\TenantRule::roleExists()],
             'status' => ['required', Rule::enum(UserStatus::class)],
             // Nullable so the column default carries it: a caller that never
             // mentions the type is a percentage cut, which is what the
@@ -39,7 +39,7 @@ class StoreUserRequest extends FormRequest
             'commission_percentage' => ['required_if:commission_type,percentage', 'nullable', 'numeric', 'between:0,100'],
             // Companies a dispatcher may book for.
             'companies' => ['nullable', 'array'],
-            'companies.*' => ['integer', Rule::exists('companies', 'id')],
+            'companies.*' => ['integer', \App\Support\Tenancy\TenantRule::exists('companies', 'id')],
             'commission_fixed_amount' => ['required_if:commission_type,fixed', 'nullable', 'numeric', 'min:0'],
         ];
     }

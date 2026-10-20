@@ -42,7 +42,7 @@ class StoreDriverRequest extends FormRequest
             'company_id' => [
                 'required',
                 'integer',
-                Rule::exists('companies', 'id')->whereNull('deleted_at'),
+                \App\Support\Tenancy\TenantRule::exists('companies', 'id')->whereNull('deleted_at'),
                 // A dispatcher can only put a driver under a company allocated to them
                 // (an existing driver keeps the company it already has).
                 fn (string $attribute, mixed $value, \Closure $fail) => $this->user()?->isScopedToOwnRecords()
@@ -61,7 +61,7 @@ class StoreDriverRequest extends FormRequest
             'truck_width_ft' => ['nullable', 'numeric', 'min:0', 'max:999'],
             'truck_height_ft' => ['nullable', 'numeric', 'min:0', 'max:999'],
             'truck_max_weight_lbs' => ['nullable', 'numeric', 'min:0', 'max:9999999'],
-            'equipment_type' => ['required', 'string', Rule::exists('equipment_types', 'name')],
+            'equipment_type' => ['required', 'string', \App\Support\Tenancy\TenantRule::exists('equipment_types', 'name')],
             'phone' => ['required', 'string', 'max:32', 'regex:/^[0-9+()\-.\s]+$/'],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'status' => ['required', Rule::enum(DriverStatus::class)],

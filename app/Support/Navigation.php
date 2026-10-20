@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use App\Support\Tenancy\TenantContext;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
@@ -20,7 +22,15 @@ final class Navigation
     {
         $groups = [];
 
+        // The platform owner outside a workspace sees only the platform group;
+        // the operational screens belong to a tenant and are closed to them.
+        $platformOnly = (bool) Auth::user()?->is_super_admin && ! app(TenantContext::class)->has();
+
         foreach (config('navigation.groups', []) as $group) {
+            if ($platformOnly && $group['label'] !== 'Platform') {
+                continue;
+            }
+
             $items = [];
 
             foreach ($group['items'] as $item) {

@@ -45,7 +45,10 @@ final class ReportController extends Controller
             $withCommission = $viewer->can('view-company-commission');
             $zone = Timezones::usLabel();
 
-            return $this->export($request, 'Load register', 'load-register',
+            return $this->export(
+                $request,
+                'Load register',
+                'load-register',
                 array_filter(['Reference', 'Status', 'Company', 'Broker', 'Driver', 'Dispatcher', "Pickup ({$zone})", 'Origin', 'Destination', 'Miles', 'Rate', $withCommission ? 'Commission' : null, 'Cancelled by', "Cancelled at ({$zone})", 'Cancellation reason']),
                 $report['rows']->map(fn ($load): array => array_filter([
                     'reference' => $load->reference_number,
@@ -82,7 +85,10 @@ final class ReportController extends Controller
         if ($request->wantsExport()) {
             $withCommission = $viewer->can('view-company-commission');
 
-            return $this->export($request, 'Driver earnings', 'driver-earnings',
+            return $this->export(
+                $request,
+                'Driver earnings',
+                'driver-earnings',
                 array_values(array_filter(['Driver', 'Truck', 'Company', 'Loads', 'Delivered / paid', 'Cancelled', 'Miles', 'Gross rate', 'Rate / mile', $withCommission ? 'Company commission' : null, 'Last pickup'])),
                 $report['rows']->map(fn ($row): array => array_values(array_filter([
                     $row->driver_name, $row->truck_number, $row->company_name, $row->loads_count, $row->completed_count, $row->cancelled_count,
@@ -105,7 +111,9 @@ final class ReportController extends Controller
 
         if ($request->wantsExport()) {
             return $this->export(
-                $request, 'Broker performance', 'broker-performance',
+                $request,
+                'Broker performance',
+                'broker-performance',
                 ['Broker', 'Loads', 'Miles', 'Paid revenue', 'Cancelled', 'Cancellation rate %'],
                 $report['rows']->map(fn ($row): array => [$row->company_name, $row->loads_count, $row->miles_total, $row->revenue_total, $row->cancelled_count, $row->cancellation_rate]),
                 ['Total loads' => $report['totals']['loads'], 'Paid revenue' => $report['totals']['revenue'], 'Cancelled' => $report['totals']['cancelled']],
@@ -125,7 +133,10 @@ final class ReportController extends Controller
         $report = $this->reports->invoices($request->validated());
 
         if ($request->wantsExport()) {
-            return $this->export($request, 'Invoice register', 'invoice-register',
+            return $this->export(
+                $request,
+                'Invoice register',
+                'invoice-register',
                 ['Invoice #', 'Company', 'Driver', 'Invoice date', 'Due date', 'Period', 'Billed', 'Paid', 'Balance', 'Status', 'Days overdue'],
                 $report['rows']->map(fn ($row): array => [
                     $row->invoice->invoice_number,
@@ -155,7 +166,10 @@ final class ReportController extends Controller
         $report = $this->reports->receivables($request->validated());
 
         if ($request->wantsExport()) {
-            return $this->export($request, 'Company receivables', 'company-receivables',
+            return $this->export(
+                $request,
+                'Company receivables',
+                'company-receivables',
                 ['Company', 'MC #', 'Invoices', 'Billed', 'Received', 'Balance due', 'Overdue', 'Credit held', 'Commission not yet billed'],
                 $report['rows']->map(fn ($row): array => [
                     $row->company_name, $row->mc_number, $row->invoices_count, $row->billed_total, $row->received_total,
@@ -175,7 +189,10 @@ final class ReportController extends Controller
         $report = $this->reports->receipts($request->validated());
 
         if ($request->wantsExport()) {
-            return $this->export($request, 'Payment receipts', 'payment-receipts',
+            return $this->export(
+                $request,
+                'Payment receipts',
+                'payment-receipts',
                 ['Receipt #', 'Date', 'Company', 'Invoice #', 'Method', 'Reference', 'Owed at the time', 'Received', 'Shortfall', 'Status', 'Converted on'],
                 $report['rows']->map(fn ($payment): array => [
                     $payment->id,
@@ -205,7 +222,10 @@ final class ReportController extends Controller
         $report = $this->reports->conversions($request->validated());
 
         if ($request->wantsExport()) {
-            return $this->export($request, 'PKR conversions', 'pkr-conversions',
+            return $this->export(
+                $request,
+                'PKR conversions',
+                'pkr-conversions',
                 ['Date', 'Company', 'USD', 'Rate', 'PKR gross', 'Tax', 'PKR net', 'Deposited to'],
                 $report['rows']->map(fn ($conversion): array => [
                     $conversion->conversion_date->toDateString(),
@@ -233,7 +253,10 @@ final class ReportController extends Controller
         $report = $this->reports->expenses($request->validated(), $request->user());
 
         if ($request->wantsExport()) {
-            return $this->export($request, 'Expenses by category', 'expenses-by-category',
+            return $this->export(
+                $request,
+                'Expenses by category',
+                'expenses-by-category',
                 ['Category', 'Entries', 'Total', 'Share %'],
                 collect($report['rows'])->map(fn (array $row): array => [$row['label'], $row['count'], $row['total'], $row['share']]),
             );
@@ -278,7 +301,10 @@ final class ReportController extends Controller
         $report = $this->reports->dispatcherCommissions($request->validated(), $viewer);
 
         if ($request->wantsExport()) {
-            return $this->export($request, 'Dispatcher commissions', 'dispatcher-commissions',
+            return $this->export(
+                $request,
+                'Dispatcher commissions',
+                'dispatcher-commissions',
                 ['Dispatcher', 'Loads', 'Margin', 'Commission earned', 'Already paid', 'Still payable', 'Reversed', 'Payouts in period (USD)', 'Payouts in period (PKR)'],
                 $report['rows']->map(fn ($row): array => [
                     $row->user_name, $row->loads_count, $row->margin_total, $row->earned_total, $row->paid_total,
@@ -299,7 +325,9 @@ final class ReportController extends Controller
 
         if ($request->wantsExport()) {
             return $this->export(
-                $request, 'Profit and loss', 'profit-and-loss',
+                $request,
+                'Profit and loss',
+                'profit-and-loss',
                 ['Line', 'Amount (USD)'],
                 [['Commission billed', $totals['revenue']], ['Gross rate', $totals['gross_rate']], ['Expenses', $totals['expenses']], ['Net profit', $totals['net_profit']], ['Net margin %', $totals['margin_percentage']]],
             );

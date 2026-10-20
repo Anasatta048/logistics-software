@@ -33,13 +33,13 @@ class UpdateUserRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:32'],
             'password' => ['nullable', 'confirmed', Password::defaults()],
-            'role' => ['required', 'string', Rule::exists('roles', 'name')],
+            'role' => ['required', 'string', \App\Support\Tenancy\TenantRule::roleExists()],
             'status' => ['required', Rule::enum(UserStatus::class)],
             'commission_type' => ['nullable', Rule::enum(CommissionType::class)],
             'commission_percentage' => ['required_if:commission_type,percentage', 'nullable', 'numeric', 'between:0,100'],
             // Companies a dispatcher may book for.
             'companies' => ['nullable', 'array'],
-            'companies.*' => ['integer', Rule::exists('companies', 'id')],
+            'companies.*' => ['integer', \App\Support\Tenancy\TenantRule::exists('companies', 'id')],
             'commission_fixed_amount' => ['required_if:commission_type,fixed', 'nullable', 'numeric', 'min:0'],
         ];
     }

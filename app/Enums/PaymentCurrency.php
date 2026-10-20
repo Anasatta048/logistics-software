@@ -2,8 +2,6 @@
 
 namespace App\Enums;
 
-use Illuminate\Support\Str;
-
 enum PaymentCurrency: string
 {
     // Companies pay in USD only; PKR is what the conversion produces, not a billing currency.

@@ -28,7 +28,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route($request->user()->homeRouteName(), absolute: false));
+        // Roles are per tenant: resolve it now so the landing page matches the user's role.
+        $user = $request->user();
+        if (! $user->is_super_admin && $user->tenant_id) {
+            app(\App\Support\Tenancy\TenantContext::class)->set(\App\Models\Tenant::cached((int) $user->tenant_id));
+        }
+
+        return redirect()->intended(route($user->homeRouteName(), absolute: false));
     }
 
     /**

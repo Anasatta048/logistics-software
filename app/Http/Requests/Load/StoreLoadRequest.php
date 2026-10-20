@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Load;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Enums\AttachmentType;
 use App\Enums\BrokerStatus;
 use App\Enums\DriverStatus;
@@ -10,6 +9,7 @@ use App\Models\Broker;
 use App\Models\Driver;
 use App\Models\User;
 use App\Support\Timezones;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -43,20 +43,20 @@ class StoreLoadRequest extends FormRequest
             // Optional: left blank, a DEL-000123 style number is generated.
             'reference_number' => [
                 'nullable', 'string', 'max:64',
-                Rule::unique('loads', 'reference_number')->ignore($this->route('load')),
+                \App\Support\Tenancy\TenantRule::unique('loads', 'reference_number')->ignore($this->route('load')),
             ],
             'broker_id' => [
                 'nullable',
                 'integer',
                 // soft-deleted brokers are not selectable
-                Rule::exists('brokers', 'id')->whereNull('deleted_at'),
+                \App\Support\Tenancy\TenantRule::exists('brokers', 'id')->whereNull('deleted_at'),
                 fn (string $attribute, mixed $value, \Closure $fail) => $this->brokerIsBlocked($value) && $fail('That broker is inactive.'),
             ],
             'new_broker.broker_mc_number' => [
                 Rule::excludeIf(fn () => filled($this->input('broker_id'))),
                 Rule::requiredIf(fn () => blank($this->input('broker_id'))),
                 'string', 'max:32',
-                Rule::unique('brokers', 'broker_mc_number'),
+                \App\Support\Tenancy\TenantRule::unique('brokers', 'broker_mc_number'),
             ],
             'new_broker.company_name' => [Rule::excludeIf(fn () => filled($this->input('broker_id'))), 'required_with:new_broker.broker_mc_number', 'nullable', 'string', 'max:255'],
             // Who to call at the broker for THIS load; the broker record only holds the company.
@@ -69,13 +69,13 @@ class StoreLoadRequest extends FormRequest
             'company_id' => [
                 'required',
                 'integer',
-                Rule::exists('companies', 'id')->whereNull('deleted_at'),
+                \App\Support\Tenancy\TenantRule::exists('companies', 'id')->whereNull('deleted_at'),
                 fn (string $attribute, mixed $value, \Closure $fail) => $this->companyIsNotAllocated($value) && $fail('That company is not allocated to the dispatcher.'),
             ],
             'driver_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('drivers', 'id')
+                \App\Support\Tenancy\TenantRule::exists('drivers', 'id')
                     ->whereNull('deleted_at')
                     ->where(fn ($query) => $query->where('company_id', $this->integer('company_id'))),
                 fn (string $attribute, mixed $value, \Closure $fail) => $this->driverIsInactive($value) && $fail('That driver is inactive.'),
@@ -85,7 +85,7 @@ class StoreLoadRequest extends FormRequest
             'new_driver.phone' => [Rule::excludeIf(fn () => filled($this->input('driver_id'))), 'required_with:new_driver.name', 'nullable', 'string', 'max:32', 'regex:/^[0-9+()\-.\s]+$/'],
             'new_driver.truck_number' => [Rule::excludeIf(fn () => filled($this->input('driver_id'))), 'required_with:new_driver.name', 'nullable', 'string', 'max:64'],
             'driver_name' => ['nullable', 'string', 'max:255'],
-            'equipment_type' => ['required', 'string', Rule::exists('equipment_types', 'name')],
+            'equipment_type' => ['required', 'string', \App\Support\Tenancy\TenantRule::exists('equipment_types', 'name')],
             'origin_address' => ['required', 'string', 'max:255'],
             'origin_lat' => ['nullable', 'numeric', 'between:-90,90'],
             'origin_lng' => ['nullable', 'numeric', 'between:-180,180'],
@@ -103,7 +103,7 @@ class StoreLoadRequest extends FormRequest
             // Order is checked in after(): the two times may be in different zones.
             'dropoff_at' => ['required', 'date'],
             'rate' => ['required', 'numeric', 'min:0', 'max:99999999'],
-            'dispatcher_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'dispatcher_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('users', 'id')],
             'notes' => ['nullable', 'string', 'max:2000'],
             // Documents dropped on the form; one type per file, same order.
             // At least one is needed to create a load; editing may add more but never has to.

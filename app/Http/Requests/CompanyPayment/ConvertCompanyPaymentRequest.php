@@ -25,7 +25,7 @@ final class ConvertCompanyPaymentRequest extends FormRequest
         return [
             'usd_amount' => ['nullable', 'numeric', 'min:0.01', 'max:99999999'],
             'conversion_rate' => ['required', 'numeric', 'min:0.0001', 'max:999999'],
-            'deposit_account_id' => ['nullable', 'integer', Rule::exists('accounts', 'id')->where('status', 'active')->whereNull('deleted_at')],
+            'deposit_account_id' => ['nullable', 'integer', \App\Support\Tenancy\TenantRule::exists('accounts', 'id')->where('status', 'active')->whereNull('deleted_at')],
             'conversion_date' => ['required', 'date'],
             'tax_applicable' => ['required', 'boolean'],
             // Both tax fields are meaningless without the toggle on.

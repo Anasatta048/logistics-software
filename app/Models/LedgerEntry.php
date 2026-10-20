@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LedgerEntryType;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use LogicException;
@@ -16,6 +17,8 @@ use LogicException;
  */
 class LedgerEntry extends Model
 {
+    use BelongsToTenant;
+
     public const COMPANY = 'company';
 
     public const DISPATCHER = 'dispatcher';

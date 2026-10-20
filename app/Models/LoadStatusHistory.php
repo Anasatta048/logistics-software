@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LoadStatus;
+use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -11,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class LoadStatusHistory extends Model
 {
+    use BelongsToTenant;
+
     /**
      * The attributes that are mass assignable.
      *

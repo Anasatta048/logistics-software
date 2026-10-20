@@ -13,9 +13,9 @@ use App\Models\Invoice;
 use App\Models\JournalVoucher;
 use App\Models\Load;
 use App\Models\LoadAttachment;
+use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 
 /**
  * Every model listed here is audited by ActivityObserver: created / updated /
