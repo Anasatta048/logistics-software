@@ -357,14 +357,14 @@ final class ReportService
 
     /**
      * @param  array<string, mixed>  $filters
-     * @return array{revenue: float, gross_rate: float, expenses: float, net_profit: float, margin_percentage: float}
+     * @return array<string, float>
      */
     public function profitAndLoss(array $filters, User $viewer): array
     {
         $totals = $this->repository->profitAndLoss($this->scoped($filters, $viewer));
 
-        $totals['margin_percentage'] = $totals['revenue'] > 0
-            ? round($totals['net_profit'] / $totals['revenue'] * 100, 2)
+        $totals['margin_percentage'] = $totals['converted_pkr'] > 0
+            ? round($totals['net_profit'] / $totals['converted_pkr'] * 100, 2)
             : 0.0;
 
         return $totals;

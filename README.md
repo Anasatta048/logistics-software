@@ -1,59 +1,62 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Logistics SaaS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Multi-tenant dispatch and brokerage software for truck-dispatch companies (built around the Pakistan-based
+dispatcher serving US carriers). One database, many companies, every row isolated by `tenant_id`.
 
-## About Laravel
+* **Landing page** (`/`): pricing from the plans table and a "request access" form.
+* **Super admin** (`/super-admin`): plans, access requests, workspaces (approve, trial/payment, suspend,
+  enter a workspace), platform audit log, MRR and conversion dashboard.
+* **Workspace** (each customer): loads, carriers, drivers, brokers, invoices, receipts and USD to PKR
+  conversion, expenses, accounts, transfers, journal vouchers, commissions, reports, roles and settings.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+How the business works and what each module is for: [docs/BUSINESS_FLOW_AND_PLAN.md](docs/BUSINESS_FLOW_AND_PLAN.md).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install && npm install
+cp .env.example .env && php artisan key:generate
+# create the database named in .env (DB_DATABASE), then:
+php artisan migrate --seed          # roles, plans, super admin, one demo workspace
+php artisan db:seed --class=DemoDataSeeder   # optional: sample loads, payments, expenses
+npm run build                       # or: npm run dev
+php artisan serve
+php artisan queue:work              # emails (welcome, request alerts) are queued
+```
 
-## Learning Laravel
+Logins (change after first sign-in):
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+| Who | Email | Password |
+|---|---|---|
+| Super admin | superadmin@logistics.test | password123 |
+| Demo workspace admin | admin@dreamelectlogistics.com | password |
+| Demo dispatcher | dispatcher@dreamelectlogistics.com | password |
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Production: run `php artisan db:seed --class=ProductionSeeder` (roles, plans, super admin only) and
+schedule `php artisan schedule:run` every minute (nightly `tenants:sweep` locks expired trials/subscriptions).
 
-## Laravel Sponsors
+## How multi-tenancy works
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+* Every business table has `tenant_id` as the first column of its indexes. Models use the
+  `BelongsToTenant` trait: a global scope filters reads and new rows are stamped automatically.
+  `tenant_id` is never mass-assignable.
+* `ResolveTenant` middleware fixes the tenant from the signed-in user and **fails closed** (no workspace,
+  suspended or expired means a locked page). The super admin only reaches platform screens unless they
+  enter a workspace.
+* Validation `exists`/`unique` rules must use `TenantRule`, never `Rule::exists/unique`, for tenant tables.
+* Roles: the four standard roles are shared (Spatie "teams", `team_id` null); a company's custom roles
+  are private to it. Rights, not role names, drive every check (`loads.view-all`, `settings.manage`...).
+* Files are stored under `tenants/{id}/...`; settings are one JSON row per (tenant, group).
+* Plan limits (users, drivers, loads per month) are enforced on model `creating`.
 
-### Premium Partners
+## Scaling notes
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+* Use Redis for cache, session and queue in production (`CACHE_STORE`, `SESSION_DRIVER`, `QUEUE_CONNECTION`).
+  The tenant row and the dashboard money block are cached; the settings table is read once per request.
+* Report and list queries are tenant-leading index scans; add read replicas before sharding.
+* Keep `php artisan queue:work` supervised; mail never blocks a request.
 
-## Contributing
+## Tests
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+`php artisan test` runs against MySQL (`logistics_saas_test`, see `phpunit.xml`): tenant isolation,
+platform flows, money/ledger reconciliation, settings, and a role-by-route permission matrix.

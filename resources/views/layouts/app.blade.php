@@ -69,6 +69,25 @@
                             </form>
                         </div>
                     @endif
+                    @php($ws = app(\App\Support\Tenancy\TenantContext::class)->tenant())
+                    @if ($ws && ! auth()->user()?->is_super_admin && auth()->user()?->can('settings.manage') && ($ends = $ws->endsAt()))
+                        @php($daysLeft = (int) ceil(now()->diffInDays($ends, false)))
+                        @if ($ws->status === \App\Enums\TenantStatus::Trial || $daysLeft <= 7)
+                            <div class="flex flex-wrap items-center gap-3 px-4 py-2 text-sm font-semibold {{ $daysLeft <= 3 ? 'bg-status-cancelled text-white' : 'bg-brand-navy text-white' }}">
+                                <x-icon name="clock" :size="16" />
+                                <span class="min-w-0 flex-1">
+                                    @if ($ws->status === \App\Enums\TenantStatus::Trial)
+                                        {{ $daysLeft > 0 ? __('Free trial: :n day(s) left.', ['n' => $daysLeft]) : __('Your free trial ends today.') }}
+                                    @else
+                                        {{ $daysLeft > 0 ? __('Your subscription renews in :n day(s).', ['n' => $daysLeft]) : __('Your subscription period ends today.') }}
+                                    @endif
+                                    @if (config('saas.support_email'))
+                                        <a class="underline" href="mailto:{{ config('saas.support_email') }}">{{ __('Contact us to continue') }}</a>
+                                    @endif
+                                </span>
+                            </div>
+                        @endif
+                    @endif
                     <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {{-- A form sent back with validation errors: the messages stay inline
                              under their fields and are also raised as toasts (lifted by toasts.js). --}}

@@ -368,8 +368,18 @@ final class ReportController extends Controller
                 $request,
                 'Profit and loss',
                 'profit-and-loss',
-                ['Line', 'Amount (USD)'],
-                [['Commission billed', $totals['revenue']], ['Gross rate', $totals['gross_rate']], ['Expenses', $totals['expenses']], ['Net profit', $totals['net_profit']], ['Net margin %', $totals['margin_percentage']]],
+                ['Line', 'Amount'],
+                [
+                    ['Fees billed on paid loads (USD)', $totals['revenue']],
+                    ['Gross freight (USD)', $totals['gross_rate']],
+                    ['Converted to PKR (after tax)', $totals['converted_pkr']],
+                    ['Office expenses (PKR)', $totals['expenses']],
+                    ['Dispatcher commission paid (PKR)', $totals['payouts_pkr']],
+                    ['Net profit (PKR)', $totals['net_profit']],
+                    ['Net margin %', $totals['margin_percentage']],
+                    ['USD received, not converted', $totals['unconverted_usd']],
+                    ['Commission still owed (USD)', $totals['payable_usd']],
+                ],
             );
         }
 

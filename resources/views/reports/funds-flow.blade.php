@@ -13,11 +13,11 @@
         </x-card>
 
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-5">
-            <x-reports.stat :label="__('Opening')" :value="$totals['opening']" :money="true" />
-            <x-reports.stat :label="__('Money in')" :value="$totals['in']" :money="true" />
-            <x-reports.stat :label="__('Money out')" :value="$totals['out']" :money="true" />
-            <x-reports.stat :label="__('Closing')" :value="$totals['closing']" :money="true" />
-            <x-reports.stat :label="__('Net, excl. transfers')" :value="$totals['external_in'] - $totals['external_out']" :money="true" :hint="__('Real income less real spending')" />
+            <x-reports.stat :label="__('Opening')" :value="$totals['opening']" :money="true" currency="pkr" />
+            <x-reports.stat :label="__('Money in')" :value="$totals['in']" :money="true" currency="pkr" />
+            <x-reports.stat :label="__('Money out')" :value="$totals['out']" :money="true" currency="pkr" />
+            <x-reports.stat :label="__('Closing')" :value="$totals['closing']" :money="true" currency="pkr" />
+            <x-reports.stat :label="__('Net, excl. transfers')" :value="$totals['external_in'] - $totals['external_out']" :money="true" currency="pkr" :hint="__('Real income less real spending')" />
         </div>
 
         <div class="grid gap-5 lg:grid-cols-2">

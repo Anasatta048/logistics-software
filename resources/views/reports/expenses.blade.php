@@ -25,9 +25,9 @@
         </x-card>
 
         <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <x-reports.stat :label="__('Total spent')" :value="$total" :money="true" :hint="$count.' '.__('entries')" />
-            <x-reports.stat :label="__('Average per entry')" :value="$average" :money="true" />
-            <x-reports.stat :label="__('Average per month')" :value="$monthlyAverage" :money="true" />
+            <x-reports.stat :label="__('Total spent')" :value="$total" :money="true" currency="pkr" :hint="$count.' '.__('entries')" />
+            <x-reports.stat :label="__('Average per entry')" :value="$average" :money="true" currency="pkr" />
+            <x-reports.stat :label="__('Average per month')" :value="$monthlyAverage" :money="true" currency="pkr" />
             <x-reports.stat :label="__('Biggest category')" :value="$top && $top['total'] > 0 ? $top['label'] : '—'"
                 :hint="$top && $top['total'] > 0 ? $money($top['total']).' · '.$top['share'].'%' : null" />
         </div>

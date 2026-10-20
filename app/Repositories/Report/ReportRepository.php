@@ -424,7 +424,7 @@ final class ReportRepository
      * from, kept for context.
      *
      * @param  array<string, mixed>  $filters
-     * @return array{revenue: float, gross_rate: float, expenses: float, net_profit: float}
+     * @return array<string, float>
      */
     public function profitAndLoss(array $filters): array
     {
@@ -445,11 +445,33 @@ final class ReportRepository
 
         $revenue = (float) ($loadRow['revenue'] ?? 0);
 
+        // What really reached the bank, in PKR, over the same window.
+        $conversions = (array) CompanyPayment::query()
+            ->whereNotNull('converted_at')
+            ->when($from = $this->day($filters['from'] ?? null), fn (Builder $q) => $q->where('conversion_date', '>=', $from))
+            ->when($to = $this->day($filters['to'] ?? null), fn (Builder $q) => $q->where('conversion_date', '<=', $to))
+            ->selectRaw('COALESCE(SUM(converted_usd), 0) as usd, COALESCE(SUM(pkr_net), 0) as pkr, COALESCE(SUM(tax_amount), 0) as tax')
+            ->toBase()->first();
+
+        $payoutsPkr = (float) CommissionPayout::query()
+            ->when($from = $this->day($filters['from'] ?? null), fn (Builder $q) => $q->where('paid_at', '>=', $from))
+            ->when($to = $this->day($filters['to'] ?? null), fn (Builder $q) => $q->where('paid_at', '<=', $to))
+            ->sum('pkr_amount');
+
+        $pkrIn = (float) ($conversions['pkr'] ?? 0);
+
         return [
             'revenue' => $revenue,
             'gross_rate' => round((float) ($loadRow['gross_rate'] ?? 0), 2),
             'expenses' => $expenseTotal,
-            'net_profit' => round($revenue - $expenseTotal, 2),
+            'converted_usd' => round((float) ($conversions['usd'] ?? 0), 2),
+            'converted_pkr' => round($pkrIn, 2),
+            'tax_pkr' => round((float) ($conversions['tax'] ?? 0), 2),
+            'payouts_pkr' => round($payoutsPkr, 2),
+            'unconverted_usd' => round((float) CompanyPayment::query()->whereNull('converted_at')->where('amount_received', '>', 0)->sum('amount_received'), 2),
+            'payable_usd' => round((float) Commission::query()->where('status', CommissionStatus::Accrued)->sum('commission_amount'), 2),
+            // Cash basis, all in PKR: what arrived, less what the office and the dispatchers cost.
+            'net_profit' => round($pkrIn - $expenseTotal - $payoutsPkr, 2),
         ];
     }
 
