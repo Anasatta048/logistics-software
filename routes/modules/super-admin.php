@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\SuperAdmin\DashboardController;
+use App\Http\Controllers\SuperAdmin\PaymentController;
 use App\Http\Controllers\SuperAdmin\PlanController;
 use App\Http\Controllers\SuperAdmin\TenantController;
 use App\Http\Controllers\SuperAdmin\TenantRequestController;
@@ -31,6 +32,11 @@ Route::middleware(['auth', 'can:manage-saas'])
         Route::post('tenants/{tenant}/cancel', [TenantController::class, 'cancel'])->name('tenants.cancel');
         Route::post('tenants/{tenant}/enter', [TenantController::class, 'enter'])->name('tenants.enter');
         Route::post('leave-workspace', [TenantController::class, 'leave'])->name('tenants.leave');
+
+        Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
+        Route::get('payments/{payment}/proof', [PaymentController::class, 'proof'])->name('payments.proof')->whereNumber('payment');
+        Route::post('payments/{payment}/approve', [PaymentController::class, 'approve'])->name('payments.approve')->whereNumber('payment');
+        Route::post('payments/{payment}/reject', [PaymentController::class, 'reject'])->name('payments.reject')->whereNumber('payment');
 
         Route::get('requests', [TenantRequestController::class, 'index'])->name('requests.index');
         Route::post('requests/{tenantRequest}/approve', [TenantRequestController::class, 'approve'])->name('requests.approve');

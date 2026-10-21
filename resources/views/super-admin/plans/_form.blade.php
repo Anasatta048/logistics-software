@@ -22,6 +22,12 @@
             <x-field name="yearly_price" :label="__('Yearly price ($)')" icon="dollar" required>
                 <input id="yearly_price" name="yearly_price" type="number" step="0.01" min="0" value="{{ $v('yearly_price', 0) }}" required>
             </x-field>
+            <x-field name="monthly_price_pkr" :label="__('Monthly price (Rs)')" icon="dollar" :hint="__('Optional. Set both Rs prices to bill in PKR.')">
+                <input id="monthly_price_pkr" name="monthly_price_pkr" type="number" step="1" min="0" value="{{ $v('monthly_price_pkr') }}">
+            </x-field>
+            <x-field name="yearly_price_pkr" :label="__('Yearly price (Rs)')" icon="dollar" :hint="__('Set it below 12 months for a yearly discount.')">
+                <input id="yearly_price_pkr" name="yearly_price_pkr" type="number" step="1" min="0" value="{{ $v('yearly_price_pkr') }}">
+            </x-field>
             <x-field name="trial_days" :label="__('Free trial (days)')" icon="calendar">
                 <input id="trial_days" name="trial_days" type="number" min="0" value="{{ $v('trial_days', 14) }}">
             </x-field>
@@ -36,7 +42,19 @@
         </div>
     </x-form-section>
 
-    <x-form-section :title="__('Features & display')" icon="sparkles" :step="4">
+    <x-form-section :title="__('Included modules')" icon="layers" :description="__('Workspaces on this plan can only open the ticked areas. Loads, drivers, brokers, companies, invoices and users are always included.')" :step="4">
+        @php($on = old('modules', $plan ? ($plan->modules ?? \App\Support\PlanModules::keys()) : \App\Support\PlanModules::keys()))
+        <div class="grid gap-3 sm:grid-cols-2">
+            @foreach (\App\Support\PlanModules::ALL as $key => $module)
+                <label class="flex items-start gap-2 text-sm">
+                    <input type="checkbox" name="modules[]" value="{{ $key }}" class="mt-0.5 text-brand-primary focus:ring-brand-primary" @checked(in_array($key, $on, true))>
+                    <span><span class="font-semibold">{{ __($module['label']) }}</span><br><span class="text-xs text-text-muted">{{ __($module['hint']) }}</span></span>
+                </label>
+            @endforeach
+        </div>
+    </x-form-section>
+
+    <x-form-section :title="__('Features & display')" icon="sparkles" :step="5">
         <div class="grid gap-4">
             <x-field name="features" :label="__('Features')" :hint="__('One feature per line — shown as a tick list on the landing page.')">
                 <textarea id="features" name="features" rows="6">{{ old('features', implode("\n", $plan?->features ?? [])) }}</textarea>

@@ -61,7 +61,7 @@ class AppServiceProvider extends ServiceProvider
         // Report has no Eloquent model to hang a discoverable Policy off of
         // (Section 0.1 still requires a Policy for authorization), so its
         // abilities are registered as named Gates here, one per report.
-        foreach (['viewAny', 'loads', 'drivers', 'brokers', 'invoices', 'receivables', 'receipts', 'conversions', 'expenses', 'accountStatement', 'fundsFlow', 'dispatcherCommissions', 'profitAndLoss'] as $ability) {
+        foreach (['viewAny', 'loads', 'drivers', 'brokers', 'brokerAging', 'settlements', 'invoices', 'receivables', 'receipts', 'conversions', 'expenses', 'accountStatement', 'fundsFlow', 'dispatcherCommissions', 'profitAndLoss'] as $ability) {
             Gate::define("reports.{$ability}", fn (User $user): bool => (new ReportPolicy())->{$ability}($user));
         }
 
@@ -72,10 +72,19 @@ class AppServiceProvider extends ServiceProvider
         // The platform owner (SaaS super admin) passes every check and alone
         // reaches the plans / access-requests area.
         Gate::before(fn (User $user): ?bool => $user->is_super_admin ? true : null);
+        // A module the tenant's plan leaves out is closed to every user of it,
+        // whatever role they hold: policies, `can:` routes and the menu all go through here.
+        Gate::before(function (User $user, string $ability, array $arguments = []): ?bool {
+            $module = \App\Support\PlanModules::forAbility($ability, $arguments);
+
+            return $module !== null && ! app(\App\Services\Tenancy\ModuleAccess::class)->allows($module) ? false : null;
+        });
         Gate::define('manage-saas', fn (User $user): bool => (bool) $user->is_super_admin);
 
         // App-wide settings (team timezones) belong to admins alone.
         Gate::define('manage-data', fn (User $user): bool => $user->can('data.import') || $user->can('data.export'));
+        // Paying for the subscription is an owner/admin job, the same people who run settings.
+        Gate::define('manage-billing', fn (User $user): bool => $user->can('settings.manage'));
         Gate::define('manage-settings', fn (User $user): bool => $user->can('settings.manage'));
 
         // Plan caps (users / drivers / loads per month) apply on every insert.

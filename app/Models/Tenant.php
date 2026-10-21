@@ -20,7 +20,7 @@ class Tenant extends Model
     protected $fillable = [
         'name', 'slug', 'plan_id', 'status', 'billing_cycle', 'trial_ends_at',
         'subscription_ends_at', 'suspended_at', 'suspended_reason',
-        'contact_name', 'email', 'phone', 'notes',
+        'contact_name', 'email', 'phone', 'notes', 'reminder_stage', 'reminder_for',
     ];
 
     protected function casts(): array
@@ -30,6 +30,7 @@ class Tenant extends Model
             'trial_ends_at' => 'datetime',
             'subscription_ends_at' => 'datetime',
             'suspended_at' => 'datetime',
+            'reminder_for' => 'date',
         ];
     }
 
@@ -65,6 +66,12 @@ class Tenant extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    /** @return HasMany<SubscriptionPayment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SubscriptionPayment::class);
     }
 
     /** @return HasMany<TenantRequest, $this> */

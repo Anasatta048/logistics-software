@@ -181,7 +181,26 @@ function enhance(table) {
     });
     bar.appendChild(reset);
 
+    // Phones: filters hide behind a button so the list is the first thing you see.
+    if (filters.length) {
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'dt-filters-toggle';
+        toggle.textContent = 'Filters';
+        toggle.addEventListener('click', () => bar.classList.toggle('is-open'));
+        bar.querySelector('.dt-filter-search').after(toggle);
+    }
+
     container.insertBefore(bar, container.firstChild);
+
+    // Phones: each row becomes a card, so every cell needs its column name (CSS shows it).
+    const labels = [...head.cells].map((th) => (/^(actions?)?$/i.test(th.textContent.trim()) ? '' : clean(th.textContent)));
+    const applyLabels = () => [...table.tBodies[0].rows].forEach((row) => [...row.cells].forEach((cell, i) => {
+        if (labels[i]) cell.dataset.label = labels[i];
+    }));
+    applyLabels();
+    dt.on('draw', applyLabels);
+
     dt.draw();
 }
 

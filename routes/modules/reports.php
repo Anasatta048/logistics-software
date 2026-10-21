@@ -26,6 +26,9 @@ Route::middleware('auth')->prefix('reports')->name('reports.')->group(function (
     Route::get('/drivers', [ReportController::class, 'drivers'])->name('drivers')->middleware('can:reports.drivers');
     Route::get('/brokers', [ReportController::class, 'brokers'])->name('brokers')->middleware('can:reports.brokers');
 
+    Route::get('/broker-aging', [ReportController::class, 'brokerAging'])->name('broker-aging')->middleware('can:reports.brokerAging');
+    Route::get('/settlements', [ReportController::class, 'settlements'])->name('settlements')->middleware('can:reports.settlements');
+
     // Invoices & payments
     Route::get('/invoices', [ReportController::class, 'invoices'])->name('invoices')->middleware('can:reports.invoices');
     Route::get('/receivables', [ReportController::class, 'receivables'])->name('receivables')->middleware('can:reports.receivables');

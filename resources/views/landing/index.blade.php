@@ -171,7 +171,7 @@
         <h2 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">{{ __('Pick the plan that fits your fleet') }}</h2>
         <div class="mt-6 inline-flex border border-border p-1 text-sm font-semibold">
             <button @click="yearly = false" :class="!yearly ? 'bg-brand-navy text-white' : 'text-text-muted'" class="px-4 py-1.5">{{ __('Monthly') }}</button>
-            <button @click="yearly = true" :class="yearly ? 'bg-brand-navy text-white' : 'text-text-muted'" class="px-4 py-1.5">{{ __('Yearly') }} <span class="text-brand-primary" :class="yearly && '!text-white/80'">−2 {{ __('months') }}</span></button>
+            <button @click="yearly = true" :class="yearly ? 'bg-brand-navy text-white' : 'text-text-muted'" class="px-4 py-1.5">{{ __('Yearly') }} @if ($saving = $plans->max(fn ($p) => $p->yearlySavingPercent()))<span class="text-brand-primary" :class="yearly && '!text-white/80'">{{ __('save up to') }} {{ $saving }}%</span>@endif</button>
         </div>
     </div>
 
@@ -181,11 +181,19 @@
                 @if ($plan->is_featured)<span class="absolute -top-3 left-8 bg-brand-primary px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">{{ __('Most popular') }}</span>@endif
                 <h3 class="text-xl font-extrabold">{{ $plan->name }}</h3>
                 <p class="mt-1 min-h-[2.5rem] text-sm text-text-muted">{{ $plan->tagline }}</p>
-                <p class="mt-5 flex items-baseline gap-1">
-                    <span class="text-5xl font-extrabold tracking-tight" x-text="'$' + (yearly ? {{ (int) round($plan->yearly_price / 12) }} : {{ (int) $plan->monthly_price }})">${{ (int) $plan->monthly_price }}</span>
-                    <span class="text-sm text-text-muted">/ {{ __('month') }}</span>
-                </p>
-                <p class="text-xs text-text-muted" x-show="yearly" x-cloak>${{ number_format($plan->yearly_price, 0) }} {{ __('billed yearly') }}</p>
+                @if ($plan->hasPkrPrice())
+                    <p class="mt-5 flex items-baseline gap-1">
+                        <span class="text-4xl font-extrabold tracking-tight" x-text="'Rs ' + (yearly ? {{ (int) round($plan->yearly_price_pkr / 12) }} : {{ (int) $plan->monthly_price_pkr }}).toLocaleString('en-US')">Rs {{ number_format($plan->monthly_price_pkr) }}</span>
+                        <span class="text-sm text-text-muted">/ {{ __('month') }}</span>
+                    </p>
+                    <p class="text-xs text-text-muted"><span x-text="'$' + (yearly ? {{ (int) round($plan->yearly_price / 12) }} : {{ (int) $plan->monthly_price }})">${{ (int) $plan->monthly_price }}</span> / {{ __('month') }} <span x-show="yearly" x-cloak>· Rs {{ number_format($plan->yearly_price_pkr) }} {{ __('billed yearly') }}@if ($plan->yearlySavingPercent() > 0) ({{ __('save') }} {{ $plan->yearlySavingPercent() }}%)@endif</span></p>
+                @else
+                    <p class="mt-5 flex items-baseline gap-1">
+                        <span class="text-5xl font-extrabold tracking-tight" x-text="'$' + (yearly ? {{ (int) round($plan->yearly_price / 12) }} : {{ (int) $plan->monthly_price }})">${{ (int) $plan->monthly_price }}</span>
+                        <span class="text-sm text-text-muted">/ {{ __('month') }}</span>
+                    </p>
+                    <p class="text-xs text-text-muted" x-show="yearly" x-cloak>${{ number_format($plan->yearly_price, 0) }} {{ __('billed yearly') }}</p>
+                @endif
                 @if ($plan->trial_days)<p class="mt-1 text-xs font-semibold text-status-paid">{{ $plan->trial_days }}-{{ __('day free trial') }}</p>@endif
 
                 <ul class="mt-6 flex-1 space-y-2.5 text-sm">
@@ -275,7 +283,8 @@
 </section>
 
 <footer class="bg-[#0F1B35] py-8 text-center text-xs text-white/50">
-    &copy; {{ now()->year }} {{ config('app.name') }}. {{ __('All rights reserved.') }}
+    <div class="text-white/60">@include('legal.links')</div>
+    <p class="mt-3">&copy; {{ now()->year }} {{ config('saas.legal.company') }}. {{ __('All rights reserved.') }}</p>
 </footer>
 
 </body>

@@ -14,6 +14,7 @@
 require __DIR__.'/modules/landing.php';
 require __DIR__.'/modules/auth.php';
 require __DIR__.'/modules/super-admin.php';
+require __DIR__.'/modules/billing.php';
 require __DIR__.'/modules/users.php';
 require __DIR__.'/modules/roles.php';
 require __DIR__.'/modules/companies.php';
@@ -38,3 +39,6 @@ require __DIR__.'/modules/money-settings.php';
 require __DIR__.'/modules/data.php';
 require __DIR__.'/modules/activity-logs.php';
 require __DIR__.'/modules/maps.php';
+
+// Uptime monitors poll this (database, cache, storage, backup freshness).
+Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');

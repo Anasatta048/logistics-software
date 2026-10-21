@@ -51,7 +51,8 @@ final class ResolveTenant
             return redirect()->route('login')->withErrors(['email' => 'This account is not attached to a workspace.']);
         }
 
-        if (! $tenant->isUsable() && ! $request->routeIs('logout')) {
+        // A locked workspace can still sign out and open Billing, so it can pay its way back in.
+        if (! $tenant->isUsable() && ! $request->routeIs('logout', 'billing.*')) {
             return response()->view('tenant.locked', ['tenant' => $tenant], 403);
         }
 

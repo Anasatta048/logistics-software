@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // secure cookies are generated correctly.
         $middleware->trustProxies(at: '*');
 
+        $middleware->alias(['module' => \App\Http\Middleware\EnsurePlanModule::class]);
+
         // Pins the request to the signed-in user's tenant (see ResolveTenant).
         $middleware->web(append: [\App\Http\Middleware\ResolveTenant::class]);
 
@@ -27,5 +29,6 @@ return Application::configure(basePath: dirname(__DIR__))
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Reports unhandled errors to Sentry when SENTRY_LARAVEL_DSN is set; does nothing otherwise.
+        \Sentry\Laravel\Integration::handles($exceptions);
     })->create();

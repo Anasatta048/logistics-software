@@ -4,6 +4,7 @@ namespace App\Services\Tenancy;
 
 use App\Models\Driver;
 use App\Models\Load;
+use App\Models\Plan;
 use App\Models\User;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Validation\ValidationException;
@@ -55,6 +56,28 @@ final class TenantLimits
         $tenant = $this->context->tenant();
 
         return $tenant?->plan?->{self::RESOURCES[$resource][0]};
+    }
+
+    /**
+     * Resources the current tenant already uses beyond a plan's caps (checked
+     * before moving it onto that plan).
+     *
+     * @return array<string, string> resource => "12 drivers (plan allows 10)"
+     */
+    public function exceededBy(Plan $plan): array
+    {
+        $over = [];
+
+        foreach (self::RESOURCES as $resource => [$column, $label]) {
+            $cap = $plan->{$column};
+            $used = $this->used($resource);
+
+            if ($cap !== null && $used > $cap) {
+                $over[$resource] = "{$used} {$label} (plan allows {$cap})";
+            }
+        }
+
+        return $over;
     }
 
     public function used(string $resource): int

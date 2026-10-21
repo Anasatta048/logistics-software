@@ -522,3 +522,27 @@ main table td:first-child { white-space: nowrap; }
 .field-wrap.has-icon .select2-container--default .select2-selection--multiple { padding-left: 34px; }
 .field-wrap .select2-container--default .select2-selection--multiple { margin-top: 0; }
 .field-wrap.has-icon .select2-container--default .select2-selection--multiple .select2-search--inline:first-child .select2-search__field { margin-left: 0; }
+
+/* ── Phones: table rows become cards, filters fold away ─────────────────── */
+.dt-filters-toggle { display: none; }
+@media (max-width: 639px) {
+    .dt-filters { gap: 10px; }
+    .dt-filters .dt-filter { min-width: 0; flex: 1 1 100%; }
+    .dt-filters .dt-filter-search { flex: 1 1 auto; }
+    .dt-filters-toggle { display: inline-flex; align-items: center; align-self: flex-end; height: 36px; padding: 0 14px; font-size: 13px; font-weight: 700; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-primary); }
+    .dt-filters:not(.is-open) .dt-filter:not(.dt-filter-search), .dt-filters:not(.is-open) .dt-filters-reset { display: none; }
+    .dt-filters .dt-filter-dates { flex-wrap: wrap; }
+
+    table[data-table].dataTable, table[data-table] { display: block; width: 100% !important; }
+    table[data-table] thead { display: none; }
+    table[data-table] tbody { display: block; }
+    table[data-table] tbody tr { display: block; padding: 10px 14px; border-bottom: 1px solid var(--color-border); }
+    :root.dark table[data-table] tbody tr { border-color: rgb(255 255 255 / .08); }
+    table[data-table] tbody td { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 5px 0 !important; text-align: right; white-space: normal !important; max-width: none !important; border: 0; }
+    table[data-table] tbody td[data-label]::before { content: attr(data-label); flex-shrink: 0; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--color-text-muted); text-align: left; }
+    table[data-table] tbody td:not([data-label]) { justify-content: flex-end; padding-top: 10px !important; }
+    table[data-table] tbody td > * { max-width: 100%; }
+    table[data-table] tbody td a[title], table[data-table] tbody td button[title] { padding: 8px; }
+    .dt-container .dt-layout-row { padding: 10px 12px; }
+    .dt-container .dt-search input { width: 100%; }
+}

@@ -59,6 +59,15 @@ return [
             ],
         ],
 
+        'loadboards' => [
+            'label' => 'Load boards',
+            'icon' => 'truck',
+            'description' => 'Shortcuts to the load boards your dispatchers use. They appear under "Load boards" in the top bar and open in a new tab.',
+            'fields' => [
+                'links' => ['type' => 'textarea', 'label' => 'Links', 'default' => \App\Support\LoadBoards::DEFAULT, 'max' => 1200, 'hint' => 'One per line: Name | https://address. Only http(s) links are shown.'],
+            ],
+        ],
+
         'numbering' => [
             'label' => 'Numbering',
             'icon' => 'hash',

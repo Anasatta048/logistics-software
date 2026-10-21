@@ -12,6 +12,8 @@
         "laravel/reverb": "^1.12",
         "laravel/tinker": "^2.10.1",
         "openspout/openspout": "^4.28",
+        "sentry/sentry-laravel": "^4.29",
+        "smalot/pdfparser": "^2.13",
         "spatie/laravel-permission": "^6.25"
     },
     "require-dev": {

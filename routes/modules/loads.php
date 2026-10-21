@@ -21,6 +21,11 @@ Route::middleware('auth')->prefix('loads')->name('loads.')->group(function () {
     Route::post('/calculate-distance', [LoadController::class, 'calculateDistance'])
         ->name('calculate-distance');
 
+    // Reads a broker's rate confirmation PDF and suggests the load fields (see RateConfirmationParser).
+    Route::post('/parse-rate-confirmation', [LoadController::class, 'parseRateConfirmation'])
+        ->name('parse-rate-confirmation')
+        ->middleware(['can:create,App\Models\Load', 'throttle:20,1']);
+
     Route::get('/', [LoadController::class, 'index'])
         ->name('index')
         ->middleware('can:viewAny,App\Models\Load');

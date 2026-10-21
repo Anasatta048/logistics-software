@@ -125,6 +125,52 @@ final class ReportRepository
             ->get();
     }
 
+    /**
+     * Delivered and paid loads with the moment each one was delivered and paid
+     * (from the status history; the drop-off time stands in for old loads that
+     * have no history row). The raw material of the broker aging report.
+     *
+     * @param  array<string, mixed>  $filters  from/to apply to the delivery date
+     * @return BaseCollection<int, stdClass>
+     */
+    public function brokerPayables(array $filters): BaseCollection
+    {
+        return Load::query()
+            ->join('brokers', 'brokers.id', '=', 'loads.broker_id')
+            ->whereIn('loads.status', [LoadStatus::Delivered->value, LoadStatus::Paid->value])
+            ->when($filters['broker_id'] ?? null, fn (Builder $q, $v) => $q->where('loads.broker_id', $v))
+            ->select('loads.id', 'loads.reference_number', 'loads.broker_id', 'loads.rate', 'loads.status', 'loads.dropoff_at', 'brokers.company_name')
+            ->selectRaw("(SELECT MAX(h.created_at) FROM load_status_histories h WHERE h.load_id = loads.id AND h.to_status = 'delivered') AS delivered_at")
+            ->selectRaw("(SELECT MAX(h.created_at) FROM load_status_histories h WHERE h.load_id = loads.id AND h.to_status = 'paid') AS paid_at")
+            ->orderBy('brokers.company_name')
+            ->toBase()
+            ->get();
+    }
+
+    /**
+     * Loads a carrier/driver settlement is made from: finished loads in the
+     * window (by pickup), oldest first.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return Collection<int, Load>
+     */
+    public function settlementLoads(array $filters): Collection
+    {
+        $statuses = ($filters['status'] ?? '') === 'delivered_paid'
+            ? [LoadStatus::Delivered, LoadStatus::Paid]
+            : [LoadStatus::Paid];
+
+        return Load::query()
+            ->with(['company:id,name,mc_number', 'driver:id,name,truck_number', 'broker:id,company_name'])
+            ->whereIn('status', $statuses)
+            ->when($filters['company_id'] ?? null, fn (Builder $q, $v) => $q->where('company_id', $v))
+            ->when($filters['driver_id'] ?? null, fn (Builder $q, $v) => $q->where('driver_id', $v))
+            ->when($from = $this->start($filters['from'] ?? null), fn (Builder $q) => $q->where('pickup_at', '>=', $from))
+            ->when($to = $this->end($filters['to'] ?? null), fn (Builder $q) => $q->where('pickup_at', '<=', $to))
+            ->orderBy('pickup_at')
+            ->get();
+    }
+
     /* ────────────────────── Invoices & receipts ────────────────────── */
 
     /**

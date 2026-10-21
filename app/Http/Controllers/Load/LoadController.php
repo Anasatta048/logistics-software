@@ -16,6 +16,7 @@ use App\Models\LoadAttachment;
 use App\Services\Load\LoadCancellationService;
 use App\Services\Load\LoadService;
 use App\Services\Load\LoadStatusService;
+use App\Services\Load\RateConfirmationParser;
 use App\Services\Map\GeoapifyClient;
 use App\Services\Map\MapService;
 use App\Services\Map\StubMapService;
@@ -60,6 +61,21 @@ final class LoadController extends Controller
         return redirect()
             ->route('loads.index')
             ->with('success', "Load {$load->reference_number} created.");
+    }
+
+    /** Suggests load fields from an uploaded rate confirmation PDF; nothing is saved. */
+    public function parseRateConfirmation(Request $request, RateConfirmationParser $parser): JsonResponse
+    {
+        $request->validate(['file' => ['required', 'file', 'mimes:pdf', 'max:5120']]);
+
+        $result = $parser->fromFile($request->file('file'));
+
+        // A broker already on file by MC number can be picked for the dispatcher.
+        $broker = $result['broker']['mc']
+            ? \App\Models\Broker::query()->where('broker_mc_number', $result['broker']['mc'])->first(['id', 'company_name', 'broker_mc_number'])
+            : null;
+
+        return response()->json($result + ['known_broker' => $broker]);
     }
 
     public function show(Load $load): View

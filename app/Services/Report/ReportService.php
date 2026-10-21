@@ -105,6 +105,107 @@ final class ReportService
         ];
     }
 
+    /** Age bands for money a broker still owes, in days since delivery. */
+    public const AGING_BANDS = ['0-15' => [0, 15], '16-30' => [16, 30], '31-45' => [31, 45], '46-60' => [46, 60], '60+' => [61, PHP_INT_MAX]];
+
+    /** A broker that pays later than this many days after delivery counts as "slow". */
+    public const SLOW_PAY_DAYS = 30;
+
+    /**
+     * Per broker: what is still unpaid and how old it is, and how long the paid
+     * loads took to pay. Age counts from delivery, in whole days.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array{rows: BaseCollection<int, stdClass>, open: BaseCollection<int, stdClass>, totals: array<string, float|int>}
+     */
+    public function brokerAging(array $filters, User $viewer): array
+    {
+        $from = ($filters['from'] ?? null) ? \Illuminate\Support\Carbon::parse($filters['from'], 'UTC')->startOfDay() : null;
+        $to = ($filters['to'] ?? null) ? \Illuminate\Support\Carbon::parse($filters['to'], 'UTC')->endOfDay() : null;
+        $now = now();
+
+        $loads = $this->repository->brokerPayables($this->scoped($filters, $viewer))
+            ->map(function (stdClass $load) use ($now): stdClass {
+                $delivered = \Illuminate\Support\Carbon::parse($load->delivered_at ?? $load->dropoff_at, 'UTC');
+                $paid = $load->paid_at ? \Illuminate\Support\Carbon::parse($load->paid_at, 'UTC') : null;
+
+                $load->delivered = $delivered;
+                $load->age_days = (int) $delivered->diffInDays($paid ?? $now);
+                $load->is_paid = $load->status === LoadStatus::Paid->value || $load->status === LoadStatus::Paid;
+
+                return $load;
+            })
+            ->filter(fn (stdClass $load): bool => (! $from || $load->delivered >= $from) && (! $to || $load->delivered <= $to));
+
+        $band = fn (int $days): string => collect(self::AGING_BANDS)->search(fn (array $range): bool => $days >= $range[0] && $days <= $range[1]);
+
+        $rows = $loads->groupBy('broker_id')->map(function (BaseCollection $group) use ($band): stdClass {
+            $open = $group->reject->is_paid;
+            $paid = $group->filter->is_paid;
+            $row = (object) [
+                'broker_id' => $group->first()->broker_id,
+                'company_name' => $group->first()->company_name,
+                'open_count' => $open->count(),
+                'open_total' => round((float) $open->sum('rate'), 2),
+                'oldest_days' => (int) ($open->max('age_days') ?? 0),
+                'paid_count' => $paid->count(),
+                'paid_total' => round((float) $paid->sum('rate'), 2),
+                'avg_days_to_pay' => $paid->isEmpty() ? null : round((float) $paid->avg('age_days'), 1),
+                'slow_pct' => $paid->isEmpty() ? null : round($paid->filter(fn ($l) => $l->age_days > self::SLOW_PAY_DAYS)->count() / $paid->count() * 100, 1),
+            ];
+
+            foreach (array_keys(self::AGING_BANDS) as $name) {
+                $row->{'band_'.$name} = round((float) $open->filter(fn ($l) => $band($l->age_days) === $name)->sum('rate'), 2);
+            }
+
+            return $row;
+        })->sortByDesc('open_total')->values();
+
+        $open = $loads->reject->is_paid->sortByDesc('age_days')->values()
+            ->map(function (stdClass $load) use ($band): stdClass {
+                $load->band = $band($load->age_days);
+
+                return $load;
+            });
+
+        return [
+            'rows' => $rows,
+            'open' => $open,
+            'totals' => [
+                'open_count' => (int) $rows->sum('open_count'),
+                'open_total' => round((float) $rows->sum('open_total'), 2),
+                'over_30' => round((float) $open->where('age_days', '>', self::SLOW_PAY_DAYS)->sum('rate'), 2),
+                'avg_days_to_pay' => ($paidLoads = $loads->filter->is_paid)->isEmpty() ? 0.0 : round((float) $paidLoads->avg('age_days'), 1),
+            ],
+        ];
+    }
+
+    /**
+     * Statement for one carrier company or driver: each finished load, the
+     * company commission kept, and what the carrier takes home.
+     *
+     * @param  array<string, mixed>  $filters
+     * @return array{rows: Collection<int, \App\Models\Load>, totals: array<string, float|int>}
+     */
+    public function settlement(array $filters, User $viewer): array
+    {
+        $rows = $this->repository->settlementLoads($this->scoped($filters, $viewer));
+
+        $gross = round((float) $rows->sum('rate'), 2);
+        $commission = round((float) $rows->sum('company_commission_amount'), 2);
+
+        return [
+            'rows' => $rows,
+            'totals' => [
+                'count' => $rows->count(),
+                'miles' => (float) $rows->sum('total_miles'),
+                'gross' => $gross,
+                'commission' => $commission,
+                'net' => round($gross - $commission, 2),
+            ],
+        ];
+    }
+
     /* ────────────────────── Invoices & receipts ────────────────────── */
 
     /**

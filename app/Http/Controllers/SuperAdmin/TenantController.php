@@ -8,11 +8,12 @@ use App\Models\Plan;
 use App\Models\PlatformAuditLog;
 use App\Models\Tenant;
 use App\Services\Tenancy\TenantLimits;
-use App\Services\Tenancy\TenantProvisioner;
+use App\Services\Tenancy\SubscriptionService;
 use App\Support\Tenancy\TenantContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 final class TenantController extends Controller
@@ -52,18 +53,31 @@ final class TenantController extends Controller
             'tenant' => $tenant,
             'usage' => $usage,
             'plans' => Plan::query()->orderBy('sort_order')->get(['id', 'name']),
+            'payments' => $tenant->payments()->latest()->limit(10)->get(),
             'logs' => PlatformAuditLog::query()->with('user:id,name')->where('tenant_id', $tenant->id)->latest('created_at')->limit(15)->get(),
         ]);
     }
 
-    public function update(Request $request, Tenant $tenant): RedirectResponse
+    public function update(Request $request, Tenant $tenant, TenantContext $context, TenantLimits $limits): RedirectResponse
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
-            'plan_id' => ['required', Rule::exists('plans', 'id')],
+            // A hidden plan can stay on the tenant that already has it, but can't be handed to others.
+            'plan_id' => ['required', Rule::exists('plans', 'id')->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $tenant->plan_id))],
             'billing_cycle' => ['required', Rule::in(['monthly', 'yearly'])],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
+
+        if ((int) $data['plan_id'] !== (int) $tenant->plan_id) {
+            // Downgrades must fit: read the tenant's own usage against the new plan's caps.
+            $over = $context->run($tenant, fn (): array => $limits->exceededBy(Plan::findOrFail($data['plan_id'])));
+
+            if ($over !== []) {
+                throw ValidationException::withMessages([
+                    'plan_id' => 'This workspace already uses '.implode(', ', $over).'. Reduce its usage or pick a bigger plan.',
+                ]);
+            }
+        }
 
         $before = $tenant->only(['plan_id', 'billing_cycle']);
         $tenant->update($data);
@@ -76,20 +90,11 @@ final class TenantController extends Controller
     }
 
     /** A payment arrived: extend the paid period by one billing cycle and (re)activate. */
-    public function activate(Tenant $tenant, TenantProvisioner $provisioner): RedirectResponse
+    public function activate(Request $request, Tenant $tenant, SubscriptionService $subscriptions): RedirectResponse
     {
-        $from = $tenant->subscription_ends_at?->isFuture() ? $tenant->subscription_ends_at : now();
+        $payment = $subscriptions->recordManual($tenant, $request->user());
 
-        $tenant->update([
-            'status' => TenantStatus::Active,
-            'subscription_ends_at' => $provisioner->periodEnd($from, $tenant->billing_cycle),
-            'suspended_at' => null,
-            'suspended_reason' => null,
-        ]);
-
-        PlatformAuditLog::record('tenant.activated', $tenant->id, 'Payment recorded; subscription extended', ['until' => $tenant->subscription_ends_at?->toDateString()]);
-
-        return back()->with('success', 'Active until '.$tenant->subscription_ends_at->format('d M Y').'.');
+        return back()->with('success', 'Active until '.$payment->period_end->format('d M Y').". Receipt {$payment->receipt_number} issued.");
     }
 
     public function extendTrial(Request $request, Tenant $tenant): RedirectResponse

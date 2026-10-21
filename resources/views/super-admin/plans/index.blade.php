@@ -28,6 +28,7 @@
                     </div>
                     <p class="mt-4 text-3xl font-extrabold text-text-primary dark:text-white">${{ number_format($plan->monthly_price, 0) }}<span class="text-sm font-medium text-text-muted"> / {{ __('month') }}</span></p>
                     <p class="text-xs text-text-muted">${{ number_format($plan->yearly_price, 0) }} {{ __('billed yearly') }} · {{ $plan->trial_days }}-{{ __('day trial') }}</p>
+                    @if ($plan->hasPkrPrice())<p class="text-xs font-semibold text-text-primary dark:text-white">Rs {{ number_format($plan->monthly_price_pkr) }} / {{ __('month') }} · Rs {{ number_format($plan->yearly_price_pkr) }} / {{ __('year') }}@if ($plan->yearlySavingPercent() > 0) <span class="text-status-paid">({{ __('save') }} {{ $plan->yearlySavingPercent() }}%)</span>@endif</p>@endif
 
                     <dl class="mt-4 grid grid-cols-3 gap-px bg-border text-center text-xs dark:bg-white/10">
                         @foreach ([[__('Users'), $plan->max_users], [__('Drivers'), $plan->max_drivers], [__('Loads/mo'), $plan->max_loads_per_month]] as [$l, $v])
@@ -35,13 +36,13 @@
                         @endforeach
                     </dl>
 
-                    <p class="mt-4 text-xs text-text-muted">{{ trans_choice(':count request|:count requests', $plan->requests_count) }}</p>
+                    <p class="mt-4 text-xs text-text-muted">{{ count($plan->modules ?? \App\Support\PlanModules::keys()) }}/{{ count(\App\Support\PlanModules::ALL) }} {{ __('modules') }} · {{ trans_choice(':count workspace|:count workspaces', $plan->tenants_count) }} · {{ trans_choice(':count request|:count requests', $plan->requests_count) }}</p>
 
                     <div class="mt-4 flex items-center gap-2 border-t border-border pt-4 dark:border-white/10">
                         <a href="{{ route('super-admin.plans.edit', $plan) }}" class="btn-ghost btn-sm flex-1"><x-icon name="pencil" :size="14" /> {{ __('Edit') }}</a>
                         <form method="POST" action="{{ route('super-admin.plans.destroy', $plan) }}">
                             @csrf @method('DELETE')
-                            <button type="submit" class="btn-ghost btn-sm !text-status-cancelled" title="{{ __('Remove') }}" data-confirm="Remove the plan “{{ $plan->name }}”?"><x-icon name="trash" :size="14" /></button>
+                            <button type="submit" class="btn-ghost btn-sm !text-status-cancelled disabled:opacity-40" @disabled($plan->tenants_count > 0) title="{{ $plan->tenants_count > 0 ? __('In use by workspaces') : __('Remove') }}" data-confirm="Remove the plan “{{ $plan->name }}”?"><x-icon name="trash" :size="14" /></button>
                         </form>
                     </div>
                 </article>

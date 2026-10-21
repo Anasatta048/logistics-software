@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth')
+Route::middleware(['auth', 'module:roles'])
     ->prefix('roles')
     ->name('roles.')
     ->group(function () {

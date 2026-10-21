@@ -127,6 +127,69 @@ final class ReportController extends Controller
         ]);
     }
 
+    public function brokerAging(ReportFilterRequest $request): View|\Symfony\Component\HttpFoundation\Response
+    {
+        $report = $this->reports->brokerAging($request->validated(), $request->user());
+        $bands = array_keys(ReportService::AGING_BANDS);
+
+        if ($request->wantsExport()) {
+            return $this->export(
+                $request,
+                'Broker aging and payment delays',
+                'broker-aging',
+                ['Broker', 'Unpaid loads', 'Unpaid $', ...array_map(fn ($b) => "{$b} days", $bands), 'Oldest (days)', 'Avg days to pay', 'Paid late %'],
+                $report['rows']->map(fn ($row): array => [
+                    $row->company_name, $row->open_count, $row->open_total,
+                    ...array_map(fn ($b) => $row->{'band_'.$b}, $bands),
+                    $row->oldest_days, $row->avg_days_to_pay ?? '', $row->slow_pct ?? '',
+                ]),
+                ['Unpaid' => $report['totals']['open_total'], 'Unpaid over 30 days' => $report['totals']['over_30'], 'Average days to pay' => $report['totals']['avg_days_to_pay']],
+            );
+        }
+
+        return view('reports.broker-aging', [
+            ...$report,
+            'bands' => $bands,
+            ...$this->lookups($request->user(), brokers: true),
+        ]);
+    }
+
+    public function settlements(ReportFilterRequest $request): View|\Symfony\Component\HttpFoundation\Response
+    {
+        $viewer = $request->user();
+        $filters = $request->validated();
+        $subject = ($filters['driver_id'] ?? null)
+            ? Driver::query()->with('company:id,name,mc_number')->find($filters['driver_id'])
+            : (($filters['company_id'] ?? null) ? Company::query()->find($filters['company_id']) : null);
+        $report = $subject ? $this->reports->settlement($filters, $viewer) : ['rows' => collect(), 'totals' => ['count' => 0, 'miles' => 0, 'gross' => 0, 'commission' => 0, 'net' => 0]];
+
+        if ($subject && ($filters['export'] ?? null) === 'pdf') {
+            return \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.settlement-pdf', [
+                ...$report,
+                'subject' => $subject,
+                'filters' => $filters,
+                'withDelivered' => ($filters['status'] ?? '') === 'delivered_paid',
+            ])->download('settlement-'.str($subject->name)->slug().'-'.now()->format('Ymd').'.pdf');
+        }
+
+        if ($subject && ($filters['export'] ?? null) === 'csv') {
+            return $this->export(
+                $request,
+                'Settlement statement: '.$subject->name,
+                'settlement-'.str($subject->name)->slug(),
+                ['Load', 'Pickup', 'Route', 'Miles', 'Gross rate', 'Commission', 'Net to carrier'],
+                $report['rows']->map(fn ($l): array => [$l->reference_number, Timezones::toUs($l->pickup_at)?->format('Y-m-d'), $l->origin_address.' -> '.$l->destination_address, $l->total_miles, $l->rate, $l->company_commission_amount, round((float) $l->rate - (float) $l->company_commission_amount, 2)]),
+                ['Gross' => $report['totals']['gross'], 'Commission' => $report['totals']['commission'], 'Net to carrier' => $report['totals']['net']],
+            );
+        }
+
+        return view('reports.settlements', [
+            ...$report,
+            'subject' => $subject,
+            ...$this->lookups($viewer, companies: true, drivers: true),
+        ]);
+    }
+
     /* ────────────────────── Invoices & payments ────────────────────── */
 
     public function invoices(ReportFilterRequest $request): View|\Symfony\Component\HttpFoundation\Response

@@ -6,6 +6,8 @@
             ['reports.loads', 'reports.loads', 'Load Register', 'Every load in the window with status, route, rate and miles. Cancelled loads show who cancelled and why.'],
             ['reports.drivers', 'reports.drivers', 'Driver Earnings', 'Per driver: loads hauled, miles, gross rate and the company commission.'],
             ['reports.brokers', 'reports.brokers', 'Broker Performance', 'Per broker: load volume, paid revenue and how often loads fall through.'],
+            ['reports.broker-aging', 'reports.brokerAging', 'Broker Aging & Delays', 'Who still owes you, how old it is (0-15 to 60+ days) and how long each broker takes to pay.'],
+            ['reports.settlements', 'reports.settlements', 'Settlement Statement', 'Per carrier or driver: finished loads, commission kept and the net they take home, as a printable PDF.'],
         ]],
         ['Invoices & payments', 'What was billed, what arrived, and what it became in PKR.', [
             ['reports.invoices', 'reports.invoices', 'Invoice Register', 'Every invoice with billed, paid and balance, and how overdue it is.'],

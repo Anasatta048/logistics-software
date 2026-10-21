@@ -35,6 +35,18 @@ final class ReportPolicy
         return $user->can('reports.view') && $user->can('brokers.view') && ! $user->isScopedToOwnRecords();
     }
 
+    /** Who still owes us, by broker and age. Not for dispatchers, who only see their own loads. */
+    public function brokerAging(User $user): bool
+    {
+        return $user->can('reports.view') && $user->can('brokers.view') && ! $user->isScopedToOwnRecords();
+    }
+
+    /** Settlement statements show the company's commission, so they follow that right. */
+    public function settlements(User $user): bool
+    {
+        return $user->can('reports.view') && $user->can('view-company-commission') && ! $user->isScopedToOwnRecords();
+    }
+
     /* Invoices & payments */
 
     public function invoices(User $user): bool

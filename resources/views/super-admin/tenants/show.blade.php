@@ -58,6 +58,18 @@
 
             <div class="space-y-5">
                 <x-card>
+                    <h3 class="font-bold text-text-primary dark:text-white">{{ __('Payments') }}</h3>
+                    <ul class="mt-3 space-y-2 text-sm">
+                        @forelse ($payments as $p)
+                            <li class="flex items-center justify-between gap-2"><span>{{ $p->created_at->format(df()) }} · {{ $p->money() }}<br><span class="text-xs text-text-muted">{{ $p->receipt_number ?? ucfirst($p->status) }}</span></span>
+                                <span class="text-xs text-text-muted">{{ __($p->methodLabel()) }}</span></li>
+                        @empty
+                            <li class="text-text-muted">{{ __('No payments yet.') }}</li>
+                        @endforelse
+                    </ul>
+                </x-card>
+
+                <x-card>
                     <h3 class="font-bold text-text-primary dark:text-white">{{ __('Billing & access') }}</h3>
                     <div class="mt-3 space-y-3 text-sm">
                         <form method="POST" action="{{ route('super-admin.tenants.activate', $tenant) }}">

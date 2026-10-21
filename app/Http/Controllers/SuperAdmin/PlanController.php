@@ -13,7 +13,7 @@ final class PlanController extends Controller
     public function index(): View
     {
         return view('super-admin.plans.index', [
-            'plans' => Plan::withCount('requests')->orderBy('sort_order')->get(),
+            'plans' => Plan::withCount(['requests', 'tenants'])->orderBy('sort_order')->get(),
         ]);
     }
 
@@ -43,7 +43,12 @@ final class PlanController extends Controller
 
     public function destroy(Plan $plan): RedirectResponse
     {
-        // Requests keep their history (plan_id is nulled), so a plan can always go.
+        // A tenant whose plan vanishes would silently lose every cap and module limit.
+        if ($plan->tenants()->exists()) {
+            return back()->with('error', "Plan {$plan->name} is used by {$plan->tenants()->count()} workspace(s). Move them to another plan first, or hide it from the landing page instead.");
+        }
+
+        // Requests keep their history (plan_id is nulled).
         $plan->delete();
 
         return redirect()->route('super-admin.plans.index')->with('success', "Plan {$plan->name} removed.");

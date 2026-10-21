@@ -34,7 +34,7 @@ final class Navigation
             $items = [];
 
             foreach ($group['items'] as $item) {
-                if (! Route::has($item['route']) || ! self::allowed($item['gate'])) {
+                if (! Route::has($item['route']) || ! self::allowed($item['gate']) || ! self::moduleOn($item['module'] ?? null)) {
                     continue;
                 }
 
@@ -97,6 +97,13 @@ final class Navigation
         }
 
         return $resolved;
+    }
+
+    private static function moduleOn(?string $module): bool
+    {
+        return $module === null
+            || (bool) Auth::user()?->is_super_admin
+            || app(\App\Services\Tenancy\ModuleAccess::class)->allows($module);
     }
 
     private static function allowed(null|string|array $gate): bool

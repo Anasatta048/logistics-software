@@ -89,6 +89,26 @@
             </div>
         </div>
 
+        @can('viewAny', App\Models\Load::class)
+            @php($boards = \App\Support\LoadBoards::links())
+            @if ($boards)
+                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                    <button type="button" @click="open = !open" class="flex items-center gap-1.5 p-2 text-text-muted transition hover:bg-border/50 hover:text-text-primary dark:hover:bg-white/5 dark:hover:text-white" title="{{ __('Load boards') }}" aria-label="{{ __('Load boards') }}">
+                        <x-icon name="truck" :size="20" />
+                        <span class="hidden text-xs font-semibold lg:inline">{{ __('Load boards') }}</span>
+                    </button>
+                    <div x-show="open" x-cloak x-transition.origin.top.right.duration.150ms class="absolute right-0 z-40 mt-2 w-56 border border-border bg-surface py-1 shadow-2xl shadow-black/10 dark:border-white/10 dark:bg-surface-dark">
+                        @foreach ($boards as $board)
+                            <a href="{{ $board['url'] }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg dark:text-white dark:hover:bg-white/5">
+                                <span class="truncate">{{ $board['name'] }}</span>
+                                <x-icon name="link" :size="14" class="shrink-0 text-text-muted" />
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        @endcan
+
         <button
             x-data
             @click="
@@ -116,6 +136,9 @@
                 <a href="{{ route('profile.edit') }}" class="flex items-center gap-2 px-3 py-2 text-sm text-text-primary hover:bg-bg dark:text-white dark:hover:bg-white/5">
                     <x-icon name="settings" :size="16" /> {{ __('Profile & Settings') }}
                 </a>
+                <button type="button" data-install-app hidden class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-text-primary hover:bg-bg dark:text-white dark:hover:bg-white/5">
+                    <x-icon name="download" :size="16" /> {{ __('Install app') }}
+                </button>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="flex w-full items-center gap-2 border-t border-border px-3 py-2 text-left text-sm text-status-cancelled hover:bg-bg dark:border-white/10 dark:hover:bg-white/5">

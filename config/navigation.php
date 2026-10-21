@@ -43,6 +43,7 @@ return [
                     ['label' => 'All plans', 'route' => 'super-admin.plans.index'],
                     ['label' => 'Add plan', 'route' => 'super-admin.plans.create'],
                 ]],
+                ['label' => 'Payments', 'route' => 'super-admin.payments.index', 'icon' => 'wallet', 'gate' => 'manage-saas'],
                 ['label' => 'Workspaces', 'route' => 'super-admin.tenants.index', 'icon' => 'building', 'gate' => 'manage-saas'],
                 ['label' => 'Access Requests', 'route' => 'super-admin.requests.index', 'icon' => 'inbox', 'gate' => 'manage-saas'],
             ],
@@ -115,10 +116,11 @@ return [
                     ['label' => 'All users', 'route' => 'users.index'],
                     ['label' => 'Add user', 'route' => 'users.create', 'gate' => ['create', User::class]],
                 ]],
-                ['label' => 'Roles & Rights', 'route' => 'roles.index', 'icon' => 'key', 'gate' => ['viewAny', User::class], 'children' => [
+                ['label' => 'Roles & Rights', 'route' => 'roles.index', 'icon' => 'key', 'gate' => ['viewAny', User::class], 'module' => 'roles', 'children' => [
                     ['label' => 'All roles', 'route' => 'roles.index'],
                     ['label' => 'Add role', 'route' => 'roles.create', 'gate' => ['create', App\Models\Role::class]],
                 ]],
+                ['label' => 'Billing', 'route' => 'billing.index', 'icon' => 'wallet', 'gate' => 'manage-billing'],
                 ['label' => 'Business Settings', 'route' => 'settings.business.edit', 'icon' => 'building', 'gate' => 'manage-settings'],
                 ['label' => 'Import & Export', 'route' => 'data.index', 'icon' => 'upload', 'gate' => 'manage-data'],
                 ['label' => 'My Settings', 'route' => 'profile.edit', 'icon' => 'settings', 'gate' => null],
