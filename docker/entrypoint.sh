@@ -38,6 +38,9 @@ done
 echo "==> Migrating..."
 php artisan migrate --force
 
+# Documents uploaded before attachments went private are moved off the public disk (safe to repeat).
+php artisan attachments:privatize || true
+
 echo "==> Caching config/routes/views..."
 php artisan config:cache
 php artisan route:cache

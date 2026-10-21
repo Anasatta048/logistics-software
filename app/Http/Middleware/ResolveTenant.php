@@ -51,6 +51,15 @@ final class ResolveTenant
             return redirect()->route('login')->withErrors(['email' => 'This account is not attached to a workspace.']);
         }
 
+        // A finished demo ends the session and sends the visitor back to the landing page.
+        if ($tenant->is_demo && ! $tenant->isUsable()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->to(route('home').'#demo')->withErrors(['demo' => 'Your demo hour is over. Request access to keep going, or start another demo tomorrow.']);
+        }
+
         // A locked workspace can still sign out and open Billing, so it can pay its way back in.
         if (! $tenant->isUsable() && ! $request->routeIs('logout', 'billing.*')) {
             return response()->view('tenant.locked', ['tenant' => $tenant], 403);

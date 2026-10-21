@@ -172,18 +172,21 @@ final class CommissionService
             ->selectRaw('dispatcher_id, SUM(usd_amount) as total')
             ->pluck('total', 'dispatcher_id');
 
-        return User::query()
+        $users = User::query()
             ->where(fn ($query) => $query
                 ->whereHas('roles', fn ($roles) => $roles->where('name', 'dispatcher'))
                 ->orWhereIn('id', LedgerEntry::query()->where('party_type', LedgerEntry::DISPATCHER)->select('party_id')))
             ->when($viewer->isScopedToOwnRecords(), fn ($query) => $query->whereKey($viewer->id))
             ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn (User $user): object => (object) [
-                'user' => $user,
-                'position' => $this->ledger->position($user),
-                'paid' => round((float) ($paid[$user->id] ?? 0), 2),
-            ]);
+            ->get(['id', 'name']);
+
+        $positions = $this->ledger->positions($users);
+
+        return $users->map(fn (User $user): object => (object) [
+            'user' => $user,
+            'position' => $positions[$user->id],
+            'paid' => round((float) ($paid[$user->id] ?? 0), 2),
+        ]);
     }
 
     /**

@@ -86,7 +86,7 @@
                                     <td class="px-4 py-3 text-right font-medium text-text-primary dark:text-white">{{ cur_local() }} {{ number_format((float) $expense->amount, 2) }}</td>
                                     <td class="px-4 py-3">{{ $expense->account?->name ?? '—' }}</td>
                                     <td class="px-4 py-3">{{ $expense->payment_method?->label() ?? '—' }}</td>
-                                    <td class="px-4 py-3 text-text-muted">{{ $expense->attachment_path ? __('Attached') : '—' }}</td>
+                                    <td class="px-4 py-3 text-text-muted">@if ($expense->attachment_path)<a href="{{ route('expenses.attachment', $expense) }}" class="font-semibold text-brand-primary hover:underline">{{ __('Attached') }}</a>@else — @endif</td>
                                     <td class="px-4 py-3 text-right whitespace-nowrap">
                                         <div class="flex items-center justify-end gap-3">
                                             @can('update', $expense)

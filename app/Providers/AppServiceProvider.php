@@ -7,14 +7,6 @@ use App\Models\User;
 use App\Observers\ActivityObserver;
 use App\Policies\ReportPolicy;
 use App\Policies\RolePolicy;
-use App\Services\Map\GeoapifyClient;
-use App\Services\Map\GeoapifyMapService;
-use App\Services\Map\GoogleClient;
-use App\Services\Map\GoogleMapService;
-use App\Services\Map\MapService;
-use App\Services\Map\PlaceLookup;
-use App\Services\Map\StubMapService;
-use App\Support\MapProvider;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -27,30 +19,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // One tenant context per request/job; scoped so it never outlives either.
         $this->app->scoped(\App\Support\Tenancy\TenantContext::class);
-
-        // Map vendors (Geoapify / Google) are chosen by App\Support\MapProvider.
-        $this->app->bind(GeoapifyClient::class, fn (): GeoapifyClient => new GeoapifyClient(config('services.geoapify.key')));
-        $this->app->bind(GoogleClient::class, fn (): GoogleClient => new GoogleClient(config('services.google_maps.key')));
-
-        // The address picker's suggestions come from whichever provider is chosen.
-        $this->app->bind(PlaceLookup::class, fn (): PlaceLookup => MapProvider::name() === 'google'
-            ? $this->app->make(GoogleClient::class)
-            : $this->app->make(GeoapifyClient::class));
-
-        // Miles and geocoding: the chosen provider first, then the other one if
-        // it is keyed, then the offline estimate, so a map outage never blocks booking.
-        $this->app->bind(MapService::class, function (): MapService {
-            $geoapify = $this->app->make(GeoapifyClient::class);
-            $google = $this->app->make(GoogleClient::class);
-
-            $geoapifyService = $geoapify->enabled() ? new GeoapifyMapService($geoapify) : new StubMapService();
-
-            return match (MapProvider::name()) {
-                'google' => new GoogleMapService($google, $geoapifyService),
-                'geoapify' => new GeoapifyMapService($geoapify, $google->enabled() ? new GoogleMapService($google) : new StubMapService()),
-                default => new StubMapService(),
-            };
-        });
     }
 
     /**
@@ -58,6 +26,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // One ceiling for every page and action, per signed-in user (per address for guests):
+        // far above human use, low enough to stop a script hammering the app.
+        \Illuminate\Support\Facades\RateLimiter::for('app', fn (\Illuminate\Http\Request $request) => \Illuminate\Cache\RateLimiting\Limit::perMinute(300)
+            ->by($request->user()?->id ? 'u'.$request->user()->id : 'ip'.$request->ip()));
+
+        // Stronger passwords in production (min 10, mixed case, a digit); light rules while developing.
+        \Illuminate\Validation\Rules\Password::defaults(fn () => $this->app->isProduction()
+            ? \Illuminate\Validation\Rules\Password::min(10)->letters()->mixedCase()->numbers()
+            : \Illuminate\Validation\Rules\Password::min(8));
+
+        // A relation used without being eager-loaded is an N+1 query waiting for a longer list.
+        // Fail loudly while developing and testing; in production just carry on.
+        \Illuminate\Database\Eloquent\Model::preventLazyLoading(! $this->app->isProduction());
+
         // Report has no Eloquent model to hang a discoverable Policy off of
         // (Section 0.1 still requires a Policy for authorization), so its
         // abilities are registered as named Gates here, one per report.
@@ -86,6 +68,17 @@ class AppServiceProvider extends ServiceProvider
         // Paying for the subscription is an owner/admin job, the same people who run settings.
         Gate::define('manage-billing', fn (User $user): bool => $user->can('settings.manage'));
         Gate::define('manage-settings', fn (User $user): bool => $user->can('settings.manage'));
+
+        // Demo sandboxes use addresses on the reserved .invalid domain: never actually email them.
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Mail\Events\MessageSending::class, function (\Illuminate\Mail\Events\MessageSending $event): ?bool {
+            foreach ([...$event->message->getTo(), ...$event->message->getCc(), ...$event->message->getBcc()] as $address) {
+                if (str_ends_with(strtolower($address->getAddress()), '.invalid')) {
+                    return false;
+                }
+            }
+
+            return null;
+        });
 
         // Plan caps (users / drivers / loads per month) apply on every insert.
         \App\Services\Tenancy\TenantLimits::register();

@@ -1,7 +1,6 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
-import './map-picker';
 import './charts';
 import './load-summary';
 import './load-form';

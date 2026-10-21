@@ -102,11 +102,11 @@ class Driver extends Model
      */
     public function openLoadsSummary(?int $exceptLoadId = null): array
     {
-        return $this->loads()
-            ->whereIn('status', [\App\Enums\LoadStatus::Booked, \App\Enums\LoadStatus::Pickup, \App\Enums\LoadStatus::Loaded])
-            ->when($exceptLoadId, fn ($query, $id) => $query->whereKeyNot($id))
-            ->orderBy('pickup_at')
-            ->get(['id', 'reference_number', 'status', 'origin_address', 'destination_address', 'pickup_at'])
+        // A list of drivers eager-loads `openLoads` once (see DriverService::search); a single driver asks the database.
+        $open = $this->relationLoaded('openLoads') ? $this->openLoads : $this->openLoads()->get(self::OPEN_LOAD_COLUMNS);
+
+        return $open
+            ->when($exceptLoadId, fn ($loads, $id) => $loads->reject(fn (Load $load): bool => $load->id === $id))
             ->map(fn (Load $load): array => [
                 'id' => $load->id,
                 'reference' => $load->reference_number,
@@ -117,6 +117,17 @@ class Driver extends Model
                 'pickup' => \App\Support\Timezones::toUs($load->pickup_at)?->format('M j, H:i').' '.\App\Support\Timezones::usLabel(),
             ])
             ->all();
+    }
+
+    /** Columns the open-loads summary reads (driver_id is the eager-load key). */
+    public const OPEN_LOAD_COLUMNS = ['id', 'driver_id', 'reference_number', 'status', 'origin_address', 'destination_address', 'pickup_at'];
+
+    /** Booked, picked-up or loaded loads, soonest pickup first. */
+    public function openLoads(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Load::class)
+            ->whereIn('status', [\App\Enums\LoadStatus::Booked, \App\Enums\LoadStatus::Pickup, \App\Enums\LoadStatus::Loaded])
+            ->orderBy('pickup_at');
     }
 
     public function isAvailable(): bool

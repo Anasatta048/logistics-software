@@ -33,7 +33,7 @@ final class AttachmentOptimizer
     /**
      * Optimise and store; returns the path on the disk, like {@see UploadedFile::store()}.
      */
-    public function store(UploadedFile $file, string $directory, string $disk = 'public'): string
+    public function store(UploadedFile $file, string $directory, string $disk = 'local'): string
     {
         // Each tenant's files live under their own folder: easy to export,
         // quota or delete as a unit, and a stray path never points at another tenant.

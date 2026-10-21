@@ -159,7 +159,7 @@
                     <div class="h-72">
                         <canvas id="revenue-margin-chart"></canvas>
                     </div>
-                    <script type="application/json" id="revenue-margin-data">{!! json_encode($metrics['trend']) !!}</script>
+                    <script type="application/json" id="revenue-margin-data">{!! json_encode($metrics['trend'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
                 </x-chart-card>
             </div>
             @endif
@@ -170,7 +170,7 @@
                     <div class="h-72">
                         <canvas id="loads-status-chart"></canvas>
                     </div>
-                    <script type="application/json" id="loads-status-data">{!! json_encode($metrics['status_counts']) !!}</script>
+                    <script type="application/json" id="loads-status-data">{!! json_encode($metrics['status_counts'], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
                 </x-chart-card>
             </div>
             @endif

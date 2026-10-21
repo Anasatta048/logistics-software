@@ -189,7 +189,11 @@ final class TenantSettings
             $existing && $disk->delete($existing);
             $tenantId = app(TenantContext::class)->id();
 
-            return $upload->storeAs("tenants/{$tenantId}/branding", 'logo-'.substr(sha1((string) microtime()), 0, 8).'.'.$upload->getClientOriginalExtension(), 'public');
+            // The extension comes from the file's real type, never from the name the browser sent
+            // (a "logo.php" holding a PNG would otherwise be stored as .php on the public disk).
+            $extension = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp'][(string) $upload->getMimeType()] ?? 'png';
+
+            return $upload->storeAs("tenants/{$tenantId}/branding", 'logo-'.bin2hex(random_bytes(6)).'.'.$extension, 'public');
         }
 
         if ($remove && $existing) {

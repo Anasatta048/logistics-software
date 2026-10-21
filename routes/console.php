@@ -19,3 +19,6 @@ Schedule::command('backup:run')->dailyAt('03:00')->onOneServer()
 Schedule::command('backup:run --verify')->weeklyOn(0, '03:30')->onOneServer()
     ->when(fn () => (bool) config('saas.support_email'))
     ->emailOutputOnFailure((string) config('saas.support_email'));
+
+// Demo sandboxes live one hour; sweep the finished ones every few minutes.
+Schedule::command('demo:purge')->everyFiveMinutes()->onOneServer();

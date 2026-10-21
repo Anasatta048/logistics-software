@@ -66,7 +66,7 @@
             @if ($payment?->attachment_path)
                 <p class="field-hint span-2 -mt-3">
                     {{ __('Current file:') }}
-                    <a href="{{ \Illuminate\Support\Facades\Storage::url($payment->attachment_path) }}" class="font-semibold text-brand-primary hover:underline" target="_blank">{{ __('Download') }}</a>
+                    <a href="{{ route('company-payments.attachment', $payment) }}" class="font-semibold text-brand-primary hover:underline" target="_blank">{{ __('Download') }}</a>
                 </p>
             @endif
         </x-form-section>

@@ -71,7 +71,17 @@
                         </div>
                     @endif
                     @php($ws = app(\App\Support\Tenancy\TenantContext::class)->tenant())
-                    @if ($ws && ! auth()->user()?->is_super_admin && auth()->user()?->can('settings.manage') && ($ends = $ws->endsAt()))
+                    @if ($ws?->is_demo && ! auth()->user()?->is_super_admin)
+                        @php($left = max(0, (int) now()->diffInSeconds($ws->trial_ends_at, false)))
+                        <div x-data="{ s: {{ $left }}, get t() { return String(Math.floor(this.s / 60)).padStart(2, '0') + ':' + String(this.s % 60).padStart(2, '0'); } }"
+                             x-init="setInterval(() => { if (--s <= 0) location.href = '{{ route('dashboard') }}'; }, 1000)"
+                             class="sticky top-0 z-30 flex flex-wrap items-center gap-3 bg-brand-primary px-4 py-2 text-sm font-semibold text-white">
+                            <x-icon name="clock" :size="16" />
+                            <span class="min-w-0 flex-1">{{ __('Live demo with sample data. It disappears in') }} <strong x-text="t"></strong>. {{ __('Some settings are switched off.') }}</span>
+                            <a href="{{ route('home') }}#request" class="bg-white/20 px-3 py-1 text-xs font-bold hover:bg-white/30">{{ __('Request access') }}</a>
+                        </div>
+                    @endif
+                    @if ($ws && ! $ws->is_demo && ! auth()->user()?->is_super_admin && auth()->user()?->can('settings.manage') && ($ends = $ws->endsAt()))
                         @php($daysLeft = (int) ceil(now()->diffInDays($ends, false)))
                         @if ($ws->status === \App\Enums\TenantStatus::Trial || $daysLeft <= 7)
                             <div class="flex flex-wrap items-center gap-3 px-4 py-2 text-sm font-semibold {{ $daysLeft <= 3 ? 'bg-status-cancelled text-white' : 'bg-brand-navy text-white' }}">

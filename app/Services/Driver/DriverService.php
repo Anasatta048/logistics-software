@@ -77,7 +77,10 @@ final class DriverService
         $term = trim((string) $term);
 
         return Driver::query()
-            ->with('company:id,name,mc_number,default_commission_percentage')
+            ->with([
+                'company:id,name,mc_number,default_commission_percentage',
+                'openLoads' => fn ($loads) => $loads->select(Driver::OPEN_LOAD_COLUMNS),
+            ])
             // A dispatcher only gets the drivers of their allocated companies.
             ->when($viewer?->isScopedToOwnRecords(), fn ($query) => $query->whereIn('company_id', $viewer->companies()->select('companies.id')))
             // Inactive drivers are never offered in a picker.

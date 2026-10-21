@@ -84,7 +84,7 @@
                     <div class="flex items-center justify-between">
                         <dt class="text-text-muted">{{ __('Attachment') }}</dt>
                         <dd>
-                            <a href="{{ \Illuminate\Support\Facades\Storage::url($payment->attachment_path) }}"
+                            <a href="{{ route('company-payments.attachment', $payment) }}"
                                 class="text-brand-primary hover:underline" target="_blank">{{ __('Download') }}</a>
                         </dd>
                     </div>

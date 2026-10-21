@@ -201,7 +201,7 @@ final class ExpenseService
 
         if ($file instanceof UploadedFile) {
             if ($replacing !== null) {
-                Storage::disk('public')->delete($replacing);
+                \App\Support\AttachmentDisk::delete($replacing);
             }
 
             $data['attachment_path'] = app(AttachmentOptimizer::class)->store($file, 'expense-attachments');

@@ -17,6 +17,9 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update -qq \
 RUN docker-php-ext-configure gd --with-jpeg --with-webp --with-freetype \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring exif pcntl bcmath gd zip intl opcache
 
+# phpredis: sessions, cache and rate limits in memory instead of one database round-trip per request.
+RUN pecl install redis >/dev/null && docker-php-ext-enable redis
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 

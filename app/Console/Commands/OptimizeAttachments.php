@@ -28,7 +28,8 @@ class OptimizeAttachments extends Command
 
     public function handle(AttachmentOptimizer $optimizer): int
     {
-        $disk = Storage::disk('public');
+        // Run attachments:privatize first; this works on the private disk.
+        $disk = Storage::disk('local');
         $before = $after = $changed = 0;
 
         foreach (self::TARGETS as $table => $column) {

@@ -351,6 +351,12 @@ final class CompanyPaymentService
      *
      * @return array{invoiced: float, received: float, advance: float, outstanding: float}
      */
+    /** What all the given companies still owe, summed: two queries however many there are. */
+    public function outstandingTotal(Collection $companies): float
+    {
+        return round(collect($this->ledger->positions($companies))->sum('outstanding'), 2);
+    }
+
     public function balance(Company $company): array
     {
         $position = $this->ledger->position($company);

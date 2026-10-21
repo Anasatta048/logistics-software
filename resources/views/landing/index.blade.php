@@ -71,7 +71,25 @@
             <div class="mt-8 flex flex-wrap gap-3">
                 <a href="#request" class="btn-primary !px-6 !py-3 !text-sm">{{ __('Request access') }} <x-icon name="arrow-left" :size="16" class="rotate-180" /></a>
                 <a href="#pricing" class="btn-ghost !border-white/30 !px-6 !py-3 !text-sm !text-white hover:!border-brand-primary">{{ __('See plans') }}</a>
+                @if (config('demo.enabled'))
+                    @guest
+                        <form id="demo" method="POST" action="{{ route('demo.start') }}" onsubmit="const b = this.querySelector('button'); if (b.disabled) return false; b.disabled = true; b.textContent = 'Preparing your demo…';">
+                            @csrf
+                            {{-- Honeypot (people never see it) and a signed timestamp: scripts fail both. --}}
+                            <input type="text" name="company_website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;width:0;opacity:0">
+                            <input type="hidden" name="t" value="{{ \App\Services\Demo\DemoService::formToken() }}">
+                            @if (config('demo.turnstile.site_key'))
+                                <div class="cf-turnstile mb-2" data-sitekey="{{ config('demo.turnstile.site_key') }}" data-theme="dark"></div>
+                                <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+                            @endif
+                            <button class="btn-ghost !border-brand-primary !px-6 !py-3 !text-sm !text-brand-primary hover:!bg-brand-primary hover:!text-white">{{ __('Try the live demo') }} <span class="opacity-70">· {{ config('demo.minutes') }} {{ __('min') }}</span></button>
+                        </form>
+                    @endguest
+                @endif
             </div>
+            @error('demo')
+                <p class="mt-3 max-w-xl border border-brand-primary/50 bg-brand-primary/10 px-4 py-3 text-sm text-white" role="alert">{{ $message }}</p>
+            @enderror
             <dl class="mt-10 grid max-w-md grid-cols-3 gap-px bg-white/10 text-center">
                 @foreach ([['14 days', __('free trial')], ['5 min', __('to get started')], ['0', __('setup fees')]] as [$n, $l])
                     <div class="bg-brand-navy p-3"><dt class="text-lg font-extrabold text-white">{{ $n }}</dt><dd class="text-xs text-white/50">{{ $l }}</dd></div>

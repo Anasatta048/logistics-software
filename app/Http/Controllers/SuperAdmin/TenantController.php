@@ -24,6 +24,7 @@ final class TenantController extends Controller
 
         return view('super-admin.tenants.index', [
             'tenants' => Tenant::query()
+                ->real()
                 ->with('plan:id,name')
                 ->when($status, fn ($q) => $q->where('status', $status))
                 ->when($request->query('q'), fn ($q, $term) => $q->where(fn ($w) => $w
@@ -34,7 +35,7 @@ final class TenantController extends Controller
                 ->paginate(20)
                 ->withQueryString(),
             'status' => $status,
-            'counts' => Tenant::query()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
+            'counts' => Tenant::query()->real()->selectRaw('status, count(*) as total')->groupBy('status')->pluck('total', 'status'),
         ]);
     }
 
@@ -52,7 +53,7 @@ final class TenantController extends Controller
         return view('super-admin.tenants.show', [
             'tenant' => $tenant,
             'usage' => $usage,
-            'plans' => Plan::query()->orderBy('sort_order')->get(['id', 'name']),
+            'plans' => Plan::query()->where('slug', '!=', 'demo')->orderBy('sort_order')->get(['id', 'name']),
             'payments' => $tenant->payments()->latest()->limit(10)->get(),
             'logs' => PlatformAuditLog::query()->with('user:id,name')->where('tenant_id', $tenant->id)->latest('created_at')->limit(15)->get(),
         ]);

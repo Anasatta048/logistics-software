@@ -13,7 +13,7 @@ final class PlanController extends Controller
     public function index(): View
     {
         return view('super-admin.plans.index', [
-            'plans' => Plan::withCount(['requests', 'tenants'])->orderBy('sort_order')->get(),
+            'plans' => Plan::withCount(['requests', 'tenants'])->where('slug', '!=', 'demo')->orderBy('sort_order')->get(),
         ]);
     }
 

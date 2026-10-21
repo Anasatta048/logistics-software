@@ -42,14 +42,9 @@ final class DashboardService
      */
     public function forUser(User $viewer): array
     {
-        $activeStatuses = [LoadStatus::Booked, LoadStatus::Pickup, LoadStatus::Loaded];
-
-        $activeByStatus = [];
-        foreach ($activeStatuses as $status) {
-            $activeByStatus[$status->value] = $this->loadQuery($viewer)
-                ->where('status', $status)
-                ->count();
-        }
+        // One grouped query feeds both the status chart and the "active" tiles.
+        $statusCounts = $this->statusCounts($viewer);
+        $activeByStatus = array_intersect_key($statusCounts, array_flip([LoadStatus::Booked->value, LoadStatus::Pickup->value, LoadStatus::Loaded->value]));
 
         // Anyone but an admin sees their own commission only, whatever their role.
         $commissions = $this->reports->dispatcherCommissions(array_filter([
@@ -61,11 +56,9 @@ final class DashboardService
         // What companies still owe: every paid load's commission, less what has
         // been received, less anything they paid ahead. The ledger
         // balance each company's payment screen quotes, summed.
-        $pendingSettlement = (float) Company::query()
-            ->visibleTo($viewer)
-            ->where('status', 'active')
-            ->get()
-            ->sum(fn (Company $company): float => $this->payments->balance($company)['outstanding']);
+        $pendingSettlement = $this->payments->outstandingTotal(
+            Company::query()->visibleTo($viewer)->where('status', 'active')->get(['id']),
+        );
 
         return [
             'active_by_status' => $activeByStatus,
@@ -75,7 +68,7 @@ final class DashboardService
             'pending_settlement' => (float) $pendingSettlement,
             'available_drivers' => Driver::query()->visibleTo($viewer)->where('status', DriverStatus::Available)->count(),
             'today_bookings' => $this->loadQuery($viewer)->whereDate('created_at', Carbon::today())->count(),
-            'status_counts' => $this->statusCounts($viewer),
+            'status_counts' => $statusCounts,
             'needs_attention' => $this->needsAttention($viewer),
             'trend' => $this->trend($viewer),
         ];
@@ -86,10 +79,13 @@ final class DashboardService
      */
     private function statusCounts(User $viewer): array
     {
+        $found = $this->loadQuery($viewer)->reorder()->toBase()
+            ->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+
         $counts = [];
 
         foreach (LoadStatus::cases() as $status) {
-            $counts[$status->value] = $this->loadQuery($viewer)->where('status', $status)->count();
+            $counts[$status->value] = (int) ($found[$status->value] ?? 0);
         }
 
         return $counts;

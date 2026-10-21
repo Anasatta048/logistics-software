@@ -143,10 +143,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 openBrokerSearch(result.broker.mc);
             }
 
-            if (result.fields.origin_address || result.fields.destination_address) {
-                notes.push('choose the matching suggestion under Origin and Destination so the map and miles update');
-            }
-
             show(
                 filled.length
                     ? `Filled: ${filled.join(', ')}. Please check everything${notes.length ? '; ' + notes.join('; ') : ''}.`

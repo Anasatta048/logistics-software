@@ -52,6 +52,9 @@ use Illuminate\Support\Facades\Storage;
  */
 class DemoDataSeeder extends Seeder
 {
+    /** Email domain of the seeded users; a throw-away demo workspace gets its own so addresses never collide. */
+    private string $domain = 'dreamelectlogistics.com';
+
     private const CITIES = [
         ['Dallas, TX', 32.7767, -96.7970],
         ['Chicago, IL', 41.8781, -87.6298],
@@ -78,6 +81,28 @@ class DemoDataSeeder extends Seeder
             'contact_name' => 'Admin',
             'email' => 'admin@dreamelectlogistics.com',
         ]);
+    }
+
+    /**
+     * Fill an existing (empty) workspace with the same sample data, for one visitor's
+     * sandbox. Returns the sample administrator.
+     */
+    public static function seedFor(Tenant $tenant, string $domain): User
+    {
+        $seeder = new self();
+        $seeder->domain = $domain;
+
+        return app(TenantContext::class)->run($tenant, function () use ($seeder, $domain): User {
+            foreach (config('saas.starter_equipment_types') as $name) {
+                EquipmentType::query()->firstOrCreate(['name' => $name]);
+            }
+
+            ExpenseCategory::seedStarter();
+            $seeder->seedTenant();
+            mt_srand(); // seedTenant() fixes the generator for repeatable demo data; free it again
+
+            return User::query()->where('email', "admin@{$domain}")->firstOrFail();
+        });
     }
 
     public function run(): void
@@ -136,22 +161,22 @@ class DemoDataSeeder extends Seeder
 
         $pct = ['commission_type' => CommissionType::Percentage];
 
-        $admin = $make('admin@dreamelectlogistics.com', 'Admin', 'admin');
-        $accountant = $make('accountant@dreamelectlogistics.com', 'Ahmed Accountant', 'accountant');
-        $make('viewer@dreamelectlogistics.com', 'Vera Viewer', 'viewer');
+        $admin = $make("admin@{$this->domain}", 'Admin', 'admin');
+        $accountant = $make("accountant@{$this->domain}", 'Ahmed Accountant', 'accountant');
+        $make("viewer@{$this->domain}", 'Vera Viewer', 'viewer');
 
         $dispatchers = [
-            $make('dispatcher@dreamelectlogistics.com', 'Dispatch Demo', 'dispatcher', [...$pct, 'commission_percentage' => 10, 'phone' => '0300-1000001']),
-            $make('ali.dispatcher@dreamelectlogistics.com', 'Ali Raza', 'dispatcher', [...$pct, 'commission_percentage' => 15, 'phone' => '0300-1000002']),
-            $make('sara.dispatcher@dreamelectlogistics.com', 'Sara Khan', 'dispatcher', ['commission_type' => CommissionType::Fixed, 'commission_fixed_amount' => 40, 'phone' => '0300-1000003']),
+            $make("dispatcher@{$this->domain}", 'Dispatch Demo', 'dispatcher', [...$pct, 'commission_percentage' => 10, 'phone' => '0300-1000001']),
+            $make("ali.dispatcher@{$this->domain}", 'Ali Raza', 'dispatcher', [...$pct, 'commission_percentage' => 15, 'phone' => '0300-1000002']),
+            $make("sara.dispatcher@{$this->domain}", 'Sara Khan', 'dispatcher', ['commission_type' => CommissionType::Fixed, 'commission_fixed_amount' => 40, 'phone' => '0300-1000003']),
         ];
 
         // The two seeded by DatabaseSeeder may predate the commission fields.
         $dispatchers[0]->update([...$pct, 'commission_percentage' => 10]);
 
         // One deactivated account to test the login block.
-        User::query()->where('email', 'former@dreamelectlogistics.com')->exists()
-            || User::factory()->create(['name' => 'Former Dispatcher', 'email' => 'former@dreamelectlogistics.com', 'status' => UserStatus::Inactive])->assignRole('dispatcher');
+        User::query()->where('email', "former@{$this->domain}")->exists()
+            || User::factory()->create(['name' => 'Former Dispatcher', 'email' => "former@{$this->domain}", 'status' => UserStatus::Inactive])->assignRole('dispatcher');
 
         return ['admin' => $admin, 'accountant' => $accountant, 'dispatchers' => $dispatchers];
     }
@@ -361,7 +386,7 @@ class DemoDataSeeder extends Seeder
                 }
 
                 $path = "load-attachments/demo-{$load->id}-{$type->value}.pdf";
-                Storage::disk('public')->put($path, "%PDF-1.4\n% Demo {$type->value} for {$load->reference_number}\n%%EOF");
+                Storage::disk('local')->put($path, "%PDF-1.4\n% Demo {$type->value} for {$load->reference_number}\n%%EOF");
 
                 LoadAttachment::create(['load_id' => $load->id, 'type' => $type, 'file_path' => $path, 'uploaded_by' => $uploader->id]);
             }

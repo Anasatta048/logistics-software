@@ -27,7 +27,6 @@
 @endphp
 
 <div class="space-y-5 form-anim"
-    x-data="loadForm({ distanceUrl: @js(route('loads.calculate-distance', [], false)) })"
     id="load-lookups"
     data-broker-search="{{ route('brokers.search') }}"
     data-company-search="{{ route('companies.search') }}"
@@ -239,20 +238,25 @@
             <span class="form-section-icon"><x-icon name="map" :size="18" /></span>
             <div class="min-w-0 flex-1">
                 <h3 class="form-section-title"><span class="form-section-step">4</span>{{ __('Route') }}</h3>
-                <p class="form-section-desc">{{ __('Search the pickup and drop-off. The map shows the road and the miles fill in for you.') }}</p>
+                <p class="form-section-desc">{{ __('Where the load picks up and where it delivers. Enter the total miles below (the rate confirmation shows them).') }}</p>
             </div>
             
         </header>
         <div class="space-y-5 p-5">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <x-map-picker name="origin" :label="__('Origin')" :lat="$load?->origin_lat"
-                :lng="$load?->origin_lng" :address="$load?->origin_address" />
-
-            <x-map-picker name="destination" :label="__('Destination')" :lat="$load?->destination_lat"
-                :lng="$load?->destination_lng" :address="$load?->destination_address" />
+            <div>
+                <x-input-label for="origin_address" :value="__('Origin')" />
+                <x-text-input id="origin_address" data-icon="map" name="origin_address" type="text" class="mt-1 block w-full" maxlength="255" required
+                    :value="old('origin_address', $load?->origin_address)" placeholder="{{ __('Street, city, state ZIP') }}" autocomplete="off" />
+                <x-input-error class="mt-2" :messages="$errors->get('origin_address')" />
+            </div>
+            <div>
+                <x-input-label for="destination_address" :value="__('Destination')" />
+                <x-text-input id="destination_address" data-icon="map" name="destination_address" type="text" class="mt-1 block w-full" maxlength="255" required
+                    :value="old('destination_address', $load?->destination_address)" placeholder="{{ __('Street, city, state ZIP') }}" autocomplete="off" />
+                <x-input-error class="mt-2" :messages="$errors->get('destination_address')" />
+            </div>
         </div>
-
-        <x-route-map />
         </div>
     </section>
 

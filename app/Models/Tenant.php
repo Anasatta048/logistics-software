@@ -31,6 +31,7 @@ class Tenant extends Model
             'subscription_ends_at' => 'datetime',
             'suspended_at' => 'datetime',
             'reminder_for' => 'date',
+            'is_demo' => 'boolean',
         ];
     }
 
@@ -54,6 +55,12 @@ class Tenant extends Model
     private static function cacheKey(int $id): string
     {
         return "tenant.{$id}";
+    }
+
+    /** Real customers only: demo sandboxes never count in lists, revenue or reminders. */
+    public function scopeReal(\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->where('tenants.is_demo', false);
     }
 
     /** @return BelongsTo<Plan, $this> */

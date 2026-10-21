@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Load;
 use App\Enums\LoadStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Load\AttachDocumentRequest;
-use App\Http\Requests\Load\CalculateDistanceRequest;
 use App\Http\Requests\Load\CancelLoadRequest;
 use App\Http\Requests\Load\ChangeLoadStatusRequest;
 use App\Http\Requests\Load\StoreLoadRequest;
@@ -17,9 +16,6 @@ use App\Services\Load\LoadCancellationService;
 use App\Services\Load\LoadService;
 use App\Services\Load\LoadStatusService;
 use App\Services\Load\RateConfirmationParser;
-use App\Services\Map\GeoapifyClient;
-use App\Services\Map\MapService;
-use App\Services\Map\StubMapService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -90,12 +86,11 @@ final class LoadController extends Controller
     public function downloadAttachment(Load $load, LoadAttachment $attachment): StreamedResponse
     {
         abort_unless($attachment->load_id === $load->id, 404);
-        abort_unless(Storage::disk('public')->exists($attachment->file_path), 404);
 
         $name = str($load->reference_number.' '.$attachment->type->label())->replaceMatches('/[^A-Za-z0-9 \-]+/', '')->trim()
             .'.'.pathinfo($attachment->file_path, PATHINFO_EXTENSION);
 
-        return Storage::disk('public')->download($attachment->file_path, $name);
+        return \App\Support\AttachmentDisk::download($attachment->file_path, $name);
     }
 
     public function edit(Load $load): View
@@ -154,27 +149,6 @@ final class LoadController extends Controller
         return redirect()
             ->route('loads.index')
             ->with('success', "Load {$load->reference_number} cancelled.");
-    }
-
-    public function calculateDistance(CalculateDistanceRequest $request, MapService $mapService, GeoapifyClient $geoapify): JsonResponse
-    {
-        $coordinates = [
-            (float) $request->validated('origin_lat'),
-            (float) $request->validated('origin_lng'),
-            (float) $request->validated('destination_lat'),
-            (float) $request->validated('destination_lng'),
-        ];
-
-        $miles = $mapService->calculateDistance(...$coordinates);
-
-        return response()->json([
-            'miles' => $miles,
-            // The road itself, for the route preview (empty when no routing key is set).
-            'path' => $geoapify->routePath(...$coordinates),
-            // Lets the form tell a dispatcher when the number is an offline
-            // estimate rather than a real driving route.
-            'is_estimate' => $mapService instanceof StubMapService,
-        ]);
     }
 
     public function attachDocument(AttachDocumentRequest $request, Load $load): RedirectResponse

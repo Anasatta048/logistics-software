@@ -15,12 +15,6 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth')->prefix('loads')->name('loads.')->group(function () {
-    // Load-form utility: the map picker posts the two pin coordinates here and
-    // gets driving miles back. Registered before /{load}/... so the literal
-    // segment is never read as a load id.
-    Route::post('/calculate-distance', [LoadController::class, 'calculateDistance'])
-        ->name('calculate-distance');
-
     // Reads a broker's rate confirmation PDF and suggests the load fields (see RateConfirmationParser).
     Route::post('/parse-rate-confirmation', [LoadController::class, 'parseRateConfirmation'])
         ->name('parse-rate-confirmation')

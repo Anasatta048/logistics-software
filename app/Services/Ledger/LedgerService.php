@@ -116,6 +116,49 @@ final class LedgerService
             ->orderBy('id')
             ->get(['id', 'entry_type', 'amount', 'load_id', 'occurred_on']);
 
+        return $this->compute($entries, $this->references($entries));
+    }
+
+    /**
+     * Positions of several parties of one kind in two queries (entries, load references),
+     * for lists such as the dispatcher table, instead of two queries each.
+     *
+     * @param  \Illuminate\Support\Collection<int, Model>  $parties
+     * @return array<int, array<string, mixed>> keyed by the party's id
+     */
+    public function positions(\Illuminate\Support\Collection $parties): array
+    {
+        if ($parties->isEmpty()) {
+            return [];
+        }
+
+        $entries = LedgerEntry::query()
+            ->where('party_type', $this->partyType($parties->first()))
+            ->whereIn('party_id', $parties->map->getKey())
+            ->orderBy('id')
+            ->get(['id', 'party_id', 'entry_type', 'amount', 'load_id', 'occurred_on'])
+            ->groupBy('party_id');
+
+        $references = $this->references($entries->flatten(1));
+
+        return $parties->mapWithKeys(fn (Model $party): array => [
+            $party->getKey() => $this->compute($entries->get($party->getKey(), new Collection()), $references),
+        ])->all();
+    }
+
+    /** @return Collection<int, string> load id => reference number */
+    private function references(Collection $entries): Collection
+    {
+        return Load::query()->whereIn('id', $entries->pluck('load_id')->filter()->unique()->values())->pluck('reference_number', 'id');
+    }
+
+    /**
+     * @param  Collection<int, LedgerEntry>  $entries  one party's entries, oldest first
+     * @param  Collection<int, string>  $references
+     * @return array{items: Collection<int, object>, balance: float, outstanding: float, advance: float, accrued: float, settled: float}
+     */
+    private function compute(Collection $entries, Collection $references): array
+    {
         $perLoad = [];
         $pool = 0.0;
         $accrued = 0.0;
@@ -136,7 +179,6 @@ final class LedgerService
             }
         }
 
-        $references = Load::query()->whereIn('id', array_keys($perLoad))->pluck('reference_number', 'id');
         $items = collect($perLoad)
             ->filter(fn (array $row): bool => round($row['amount'], 2) > 0)
             ->sortBy('first')
